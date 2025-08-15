@@ -1,0 +1,175 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Login - LATRA GPS{% endblock %}
+
+{% block login_content %}
+<div class="container-fluid vh-100">
+    <div class="row h-100">
+        <!-- Left side - Login Form -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center">
+            <div class="w-100" style="max-width: 400px;">
+                <div class="text-center mb-5">
+                    <div class="mb-4">
+                        <i class="fas fa-satellite-dish fa-5x" style="background: linear-gradient(135deg, #4f46e5, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 4px 8px rgba(79, 70, 229, 0.3));"></i>
+                    </div>
+                    <h1 class="fw-bold mb-2" style="color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 2.5rem;">LATRA GPS</h1>
+                    <p class="text-muted fs-5">Advanced Tracking System</p>
+                    <div class="d-flex justify-content-center align-items-center mt-3">
+                        <div style="height: 2px; width: 50px; background: linear-gradient(90deg, #4f46e5, #6366f1); border-radius: 2px;"></div>
+                        <i class="fas fa-shield-alt mx-3" style="color: #6366f1;"></i>
+                        <div style="height: 2px; width: 50px; background: linear-gradient(90deg, #6366f1, #4f46e5); border-radius: 2px;"></div>
+                    </div>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="card shadow-lg border-0" style="border-radius: 25px; background: linear-gradient(145deg, #252d41 0%, #1e293b 100%); border: 1px solid #334155; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);">
+                    <div class="card-body p-5">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label for="username" class="form-label fw-semibold" style="color: #e2e8f0; font-size: 14px;">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-end-0" style="border-radius: 15px 0 0 15px; background: linear-gradient(135deg, #4f46e5, #6366f1); border: 2px solid #4f46e5; color: white; border-right: none;">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" id="username" name="username" 
+                                           placeholder="Enter your username" required 
+                                           style="border-radius: 0 15px 15px 0; background: rgba(37, 45, 65, 0.8); border: 2px solid #4f46e5; border-left: none; color: #e2e8f0; padding: 15px 20px;">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-semibold" style="color: #e2e8f0; font-size: 14px;">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-end-0" style="border-radius: 15px 0 0 15px; background: linear-gradient(135deg, #4f46e5, #6366f1); border: 2px solid #4f46e5; color: white; border-right: none;">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control border-start-0" id="password" name="password" 
+                                           placeholder="Enter your password" required 
+                                           style="border-radius: 0 15px 15px 0; background: rgba(37, 45, 65, 0.8); border: 2px solid #4f46e5; border-left: none; color: #e2e8f0; padding: 15px 20px;">
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-lg fw-semibold" 
+                                        style="border-radius: 30px; 
+                                               background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); 
+                                               border: none; 
+                                               color: white; 
+                                               padding: 15px 25px; 
+                                               font-size: 16px;
+                                               box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+                                               transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"
+                                        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 35px rgba(79, 70, 229, 0.6)';"
+                                        onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 8px 25px rgba(79, 70, 229, 0.4)';">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Sign In Securely
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <small style="color: #94a3b8;">
+                                <i class="fas fa-shield-alt me-1"></i> Protected by Advanced Security
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <small style="color: #94a3b8;">
+                        &copy; 2025 LATRA GPS Tracking System. All rights reserved.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right side - Image/Branding -->
+        <div class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center" 
+             style="background: linear-gradient(135deg, #131a2c 0%, #252d41 100%);">
+            <div class="text-center text-white">
+                <div class="mb-4">
+                    <i class="fas fa-map-marked-alt fa-6x opacity-75"></i>
+                </div>
+                <h1 class="display-4 fw-bold mb-3">Track & Monitor</h1>
+                <p class="lead mb-4">Advanced GPS tracking solution for vehicle fleet management</p>
+                
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="mb-2">
+                            <i class="fas fa-car fa-2x"></i>
+                        </div>
+                        <h6>Vehicle Tracking</h6>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-2">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <h6>Real-time Data</h6>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-2">
+                            <i class="fas fa-shield-alt fa-2x"></i>
+                        </div>
+                        <h6>Secure System</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .card {
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa !important;
+        border-color: #ddd;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add some interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add floating animation to the icon
+        const icon = document.querySelector('.fa-satellite-dish');
+        if (icon) {
+            setInterval(function() {
+                icon.style.transform = 'translateY(-5px)';
+                setTimeout(function() {
+                    icon.style.transform = 'translateY(0px)';
+                }, 1000);
+            }, 2000);
+        }
+        
+        // Focus on username field
+        document.getElementById('username').focus();
+    });
+</script>
+{% endblock %}
