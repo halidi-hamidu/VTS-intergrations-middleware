@@ -327,6 +327,13 @@ ACTIVITY_CODES = {
     408: "17",  # Unknown Driver -> Invalid Scan
     409: "17",  # Driving without Card -> Invalid Scan
     
+    # Additional iButton and RFID elements
+    245: "24",  # Driver Identification -> Ibutton Scan (Regular)
+    78: "24",   # iButton ID -> Ibutton Scan (Regular)  
+    207: "24",  # RFID Tag -> Ibutton Scan (Regular)
+    264: "24",  # Barcode ID -> Ibutton Scan (Regular)
+    100: "24",  # Magnetic Card ID -> Ibutton Scan (Regular)
+    
     # Complete Geofence Zone Coverage (155-231 comprehensive)
     161: "20",  # Geofence Zone 04 Enter -> Enter Boundary
     162: "21",  # Geofence Zone 04 Exit -> Leave Boundary
@@ -935,6 +942,20 @@ class GPSListener:
                                 (8, "8", "Panic Button -> Panic Button (Driver)"),
                                 (318, "26", "GNSS Jamming -> GPS Signal Lost"),
                                 
+                                # Driver identification events (high priority for iButton scanning)
+                                (78, "24", "iButton -> Ibutton Scan (Regular)"),
+                                (245, "24", "Driver ID -> Ibutton Scan (Regular)"),
+                                (403, "24", "Driver 1 ID -> Ibutton Scan (Regular)"),
+                                (404, "24", "Driver 2 ID -> Ibutton Scan (Regular)"),
+                                (405, "24", "Driver 3 ID -> Ibutton Scan (Regular)"),
+                                (406, "24", "Driver 4 ID -> Ibutton Scan (Regular)"),
+                                (407, "24", "Driver 5 ID -> Ibutton Scan (Regular)"),
+                                (408, "17", "Unknown Driver -> Invalid Scan"),
+                                (409, "17", "Driving without Card -> Invalid Scan"),
+                                (207, "24", "RFID Tag -> Ibutton Scan (Regular)"),
+                                (264, "24", "Barcode ID -> Ibutton Scan (Regular)"),
+                                (100, "24", "Magnetic Card ID -> Ibutton Scan (Regular)"),
+                                
                                 # Power management events
                                 (67, "9", "Battery Voltage -> Internal Battery Low"),
                                 (66, "10", "External Voltage -> External Power Disconnected"),
@@ -961,14 +982,6 @@ class GPSListener:
                                 (211, "36", "Fuel Level Warning -> Low Fuel Alert"),
                                 (84, "36", "CAN Fuel Level -> Low Fuel Alert"),
                                 (89, "36", "CAN Fuel Level % -> Low Fuel Alert"),
-                                
-                                # Driver identification
-                                (78, "24", "iButton -> Ibutton Scan (Regular)"),
-                                (403, "24", "Driver 1 ID -> Ibutton Scan (Regular)"),
-                                (404, "24", "Driver 2 ID -> Ibutton Scan (Regular)"),
-                                (405, "24", "Driver 3 ID -> Ibutton Scan (Regular)"),
-                                (408, "17", "Unknown Driver -> Invalid Scan"),
-                                (409, "17", "Driving without Card -> Invalid Scan"),
                                 
                                 # Geofence events (sample - full list too long for inline)
                                 (155, "20", "Geofence Zone 01 -> Enter Boundary"),
@@ -1090,17 +1103,34 @@ class GPSListener:
                                 record["activity"] = "19 - Engine Stop (Trip Stop)"
                                 print(f"🛑 TRIP STOP DETECTED (I/O 250=0) -> LATRA Activity 19")
                         
-                        # Check for driver identification (I/O 78 - iButton)
-                        if not detected_activity and 78 in io_elements:
-                            ibutton_id = io_elements[78]
-                            if ibutton_id and str(ibutton_id) != "0" and str(ibutton_id) != "0x0000000000000000":
-                                detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
-                                record["activity"] = f"24 - Ibutton Scan (Regular) - ID: {ibutton_id}"
-                                print(f"👤 IBUTTON DETECTED: {ibutton_id} -> LATRA Activity 24")
-                            else:
-                                detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
-                                record["activity"] = "17 - Invalid Scan (No iButton)"
-                                print(f"❌ INVALID IBUTTON SCAN -> LATRA Activity 17")
+                        # Check for driver identification (I/O 78 - iButton or I/O 245 - Driver ID)
+                        if not detected_activity and (78 in io_elements or 245 in io_elements):
+                            # Check I/O 78 (iButton) first
+                            if 78 in io_elements:
+                                ibutton_id = io_elements[78]
+                                if ibutton_id and str(ibutton_id) != "0" and str(ibutton_id) != "0x0000000000000000":
+                                    detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
+                                    record["activity"] = f"24 - Ibutton Scan (Regular) - iButton ID: {ibutton_id}"
+                                    print(f"👤 IBUTTON SCANNED (I/O 78): {ibutton_id} -> LATRA Activity 24")
+                                else:
+                                    detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
+                                    record["activity"] = "17 - Invalid Scan (No iButton ID)"
+                                    print(f"❌ INVALID IBUTTON SCAN (I/O 78) -> LATRA Activity 17")
+                            
+                            # Check I/O 245 (Driver ID) if no I/O 78 or if I/O 78 was invalid
+                            elif 245 in io_elements:
+                                driver_id = io_elements[245]
+                                # Check if it's a valid driver ID (not empty, not all zeros, not FFFFFFFF)
+                                if (driver_id and str(driver_id) != "0" and 
+                                    str(driver_id) != "0x0000000000000000" and 
+                                    str(driver_id).upper() != "FFFFFFFFFFFFFFFF"):
+                                    detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
+                                    record["activity"] = f"24 - Ibutton Scan (Regular) - Driver ID: {driver_id}"
+                                    print(f"👤 DRIVER ID SCANNED (I/O 245): {driver_id} -> LATRA Activity 24")
+                                else:
+                                    detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
+                                    record["activity"] = "17 - Invalid Scan (No Driver ID)"
+                                    print(f"❌ INVALID DRIVER ID SCAN (I/O 245) -> LATRA Activity 17")
                         
                         # Check for panic button (I/O 200 - can be panic/emergency)
                         if not detected_activity and 200 in io_elements:
