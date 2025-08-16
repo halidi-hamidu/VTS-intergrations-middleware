@@ -1,0 +1,137 @@
+{% extends './base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} User - LATRA GPS{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit User{% else %}Create New User{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row g-3">
+                <!-- Username & Email -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.username }}
+                        <label for="{{ form.username.id_for_label }}">Username</label>
+                        {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.username.errors.as_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.email }}
+                        <label for="{{ form.email.id_for_label }}">Email</label>
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.email.errors.as_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- First Name & Last Name -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.first_name }}
+                        <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.last_name }}
+                        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                    </div>
+                </div>
+                
+                <!-- Phone & Role -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.phone }}
+                        <label for="{{ form.phone.id_for_label }}">Phone</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.user_type }}
+                        <label for="{{ form.user_type.id_for_label }}">Role</label>
+                    </div>
+                </div>
+                
+                <!-- Password Fields (only shown when creating) -->
+                {% if not form.instance.pk %}
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.password1 }}
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
+                        {% if form.password1.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.password1.errors.as_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.password2 }}
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                        {% if form.password2.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.password2.errors.as_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Active Checkbox -->
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="col-12">
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="{% url 'frontend:user_list' %}" class="btn btn-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Consistent form control styling */
+    .form-control, .form-select {
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+        border-radius: 0.375rem;
+    }
+    
+    /* Form floating labels */
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    /* Switch styling */
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+    }
+    
+    /* Button styling */
+    .btn {
+        min-width: 100px;
+    }
+</style>
+{% endblock %}

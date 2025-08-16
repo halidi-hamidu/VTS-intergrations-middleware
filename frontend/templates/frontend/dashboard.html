@@ -1,11 +1,12 @@
-{% extends 'frontend/base.html' %}
+{% extends './base.html' %}
+{% load static %}
 
 {% block title %}Dashboard - LATRA GPS{% endblock %}
 
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
+<!-- Your existing statistics cards and other content... -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card h-100">
@@ -74,12 +75,16 @@
     </div>
 </div>
 
+
+
+
 <!-- Action Buttons -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Your existing header content... -->
+                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <h5 class="card-title mb-2">
                             <i class="fas fa-table me-2"></i>Reported Data
@@ -124,32 +129,32 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        
                         <!-- Action Buttons -->
                         <div>
-                            <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#addDeviceModal">
-                                <i class="fas fa-plus me-1"></i>Add Device
-                            </button>
-                            <button type="button" class="btn btn-outline-success me-2" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
-                                <i class="fas fa-car me-1"></i>Add Vehicle
-                            </button>
-                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#manageModal">
-                                <i class="fas fa-cogs me-1"></i>Manage
-                            </button>
                         </div>
                     </div>
+
                 </div>
 
-                <!-- Search Results Info -->
-                <div id="searchInfo" class="alert alert-info d-none mb-3">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <span id="searchResults"></span>
-                    <button type="button" class="btn-close ms-2" onclick="clearSearch()" style="float: right;"></button>
+                <!-- Filter Controls -->
+                <div class="filteredBy my-2">
+                    <span class="badge bg-secondary fs-6 px-3 py-2">
+                        <i class="fas fa-filter me-1"></i>Filter By: 
+                        <span>From Date: <input type="date" id="fromDate" class="text-dark ps-2"> Time: <input type="time" id="fromTime" class="text-dark ps-2"></span>
+                        <span>To Date: <input type="date" id="toDate" class="text-dark ps-2"> Time: <input type="time" id="toTime" class="text-dark ps-2"></span>
+                        <span>Re No: <input type="text" id="regNumber" class="text-dark ps-2" placeholder="Registration number"></span>
+                        <button class="btn btn-sm btn-primary ms-2" onclick="applyFilters()">
+                            <i class="fas fa-filter me-1"></i>Apply
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="clearFilters()">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </button>
+                    </span>
                 </div>
 
                 <!-- Data Table -->
                 <div class="table-responsive">
-                    <table id="dataTable" class="table table-hover">
+                    <table id="dataTable" class="table table-hover w-100">
                         <thead class="table-dark">
                             <tr>
                                 <th><i class="fas fa-calendar"></i> Date</th>
@@ -168,7 +173,9 @@
                         </thead>
                         <tbody id="tableBody">
                             {% for data in reported_data %}
-                            <tr>
+                            <tr class="data-row" 
+                                data-date="{{ data.created_at|date:'Y-m-d H:i:s' }}"
+                                data-registration="{{ data.vehicle.registration_number }}">
                                 <td>
                                     <small>{{ data.created_at|date:"Y-m-d H:i:s" }}</small>
                                 </td>
@@ -195,116 +202,7 @@
                                         <code>{{ data.vehicle.imei.imei_number }}</code>
                                     </div>
                                 </td>
-                                <td>
-                                    {% if data.processed_data.records %}
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-map-pin text-danger me-2"></i>
-                                            {{ data.processed_data.records.0.latitude|floatformat:6 }}
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if data.processed_data.records %}
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-map-pin text-success me-2"></i>
-                                            {{ data.processed_data.records.0.longitude|floatformat:6 }}
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if data.processed_data.records %}
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-tachometer-alt text-warning me-2"></i>
-                                            <span class="badge bg-info">
-                                                {{ data.processed_data.records.0.speed|default:"0" }} km/h
-                                            </span>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if data.processed_data.records %}
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-satellite text-primary me-2"></i>
-                                            <span class="badge bg-secondary">
-                                                {{ data.processed_data.records.0.satellites|default:"0" }}
-                                            </span>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if data.processed_data.records %}
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-mountain text-success me-2"></i>
-                                            <span class="badge bg-dark">
-                                                {{ data.processed_data.records.0.altitude|default:"0" }}m
-                                            </span>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if data.processed_data.records %}
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-compass text-info me-2"></i>
-                                            <span class="badge bg-warning text-dark">
-                                                {{ data.processed_data.records.0.angle|default:"0" }}°
-                                            </span>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if data.processed_data.records and data.processed_data.records.0.io_elements.240 %}
-                                        <div class="activity-info">
-                                            <div class="d-flex align-items-center mb-1">
-                                                <i class="fas fa-tasks text-warning me-2"></i>
-                                                <span class="badge bg-secondary">
-                                                    {{ data.processed_data.records.0.io_elements.240 }}
-                                                </span>
-                                            </div>
-                                            <small class="activity-name text-success" data-activity-id="{{ data.processed_data.records.0.io_elements.240 }}">
-                                                <i class="fas fa-spinner fa-spin me-1"></i>Loading...
-                                            </small>
-                                        </div>
-                                    {% else %}
-                                        <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if data.is_success %}
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge bg-success me-2">
-                                                <i class="fas fa-check-circle"></i> SUCCESS
-                                            </span>
-                                            <button class="btn btn-sm btn-outline-success" 
-                                                    onclick="showResponseModal('{{ data.latra_response|escapejs }}')"
-                                                    title="View Response Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        </div>
-                                    {% else %}
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge bg-danger me-2">
-                                                <i class="fas fa-exclamation-triangle"></i> FAILED
-                                            </span>
-                                            <button class="btn btn-sm btn-outline-danger" 
-                                                    onclick="showResponseModal('{{ data.latra_response|escapejs }}')"
-                                                    title="View Error Details">
-                                                <i class="fas fa-exclamation-circle"></i>
-                                            </button>
-                                        </div>
-                                    {% endif %}
-                                </td>
+                                <!-- Other table cells... -->
                             </tr>
                             {% empty %}
                             <tr>
@@ -315,898 +213,93 @@
                             </tr>
                             {% endfor %}
                         </tbody>
-                        </tbody>
                     </table>
                     
-                    <!-- No Results Message -->
                     <div id="noResults" class="text-center py-4 d-none">
                         <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No results found for your search.</p>
-                        <button class="btn btn-outline-primary" onclick="clearSearch()">
-                            <i class="fas fa-times me-1"></i>Clear Search
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Pagination -->
-                {% if reported_data.has_other_pages %}
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if reported_data.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ reported_data.previous_page_number }}">Previous</a>
-                            </li>
-                        {% endif %}
-                        
-                        {% for num in reported_data.paginator.page_range %}
-                            {% if reported_data.number == num %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
-                            {% else %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        {% if reported_data.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ reported_data.next_page_number }}">Next</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Device Modal -->
-<div class="modal fade" id="addDeviceModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-microchip me-2"></i>Add New Device
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addDeviceForm">
-                    <div class="mb-3">
-                        <label for="deviceImei" class="form-label">IMEI Number</label>
-                        <input type="text" class="form-control" id="deviceImei" 
-                               placeholder="Enter 15-digit IMEI number" maxlength="15" pattern="[0-9]{15}" required>
-                        <div class="form-text">IMEI must be exactly 15 digits</div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="addDevice()">
-                    <i class="fas fa-plus me-1"></i>Add Device
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Vehicle Modal -->
-<div class="modal fade" id="addVehicleModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-car me-2"></i>Add New Vehicle
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addVehicleForm">
-                    <div class="mb-3">
-                        <label for="registrationNumber" class="form-label">Registration Number</label>
-                        <input type="text" class="form-control" id="registrationNumber" 
-                               placeholder="Enter vehicle registration number" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="vehicleImei" class="form-label">Select IMEI Device</label>
-                        <select class="form-select" id="vehicleImei" required>
-                            <option value="">Loading devices...</option>
-                        </select>
-                        <div class="form-text">Only unassigned devices are shown</div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="addVehicle()">
-                    <i class="fas fa-car me-1"></i>Add Vehicle
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Response Modal -->
-<div class="modal fade" id="responseModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-info-circle me-2"></i>LATRA Response
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <pre id="responseContent" class="bg-light p-3 rounded"></pre>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Manage Modal -->
-<div class="modal fade" id="manageModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-cogs me-2"></i>Manage Devices & Vehicles
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <!-- Devices Management -->
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-microchip me-2"></i>Devices</h6>
-                        <div id="devicesList" class="border rounded p-3 mb-3" style="max-height: 300px; overflow-y: auto;">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Vehicles Management -->
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-car me-2"></i>Vehicles</h6>
-                        <div id="vehiclesList" class="border rounded p-3 mb-3" style="max-height: 300px; overflow-y: auto;">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
+                        <p class="text-muted">No results found matching your filters.</p>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="refreshManageData()">
-                    <i class="fas fa-sync-alt me-1"></i>Refresh
-                </button>
-            </div>
         </div>
     </div>
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
 <script>
-// Load unassigned devices when vehicle modal is opened
-$('#addVehicleModal').on('show.bs.modal', function() {
-    loadUnassignedDevices();
-});
-
-// Search functionality
-function filterTable() {
-    const input = document.getElementById('searchInput');
-    const filter = input.value.toLowerCase().trim();
-    const table = document.getElementById('dataTable');
-    const tbody = document.getElementById('tableBody');
-    const rows = tbody.getElementsByTagName('tr');
-    const searchInfo = document.getElementById('searchInfo');
-    const searchResults = document.getElementById('searchResults');
-    const noResults = document.getElementById('noResults');
+function applyFilters() {
+    const fromDate = document.getElementById('fromDate').value;
+    const fromTime = document.getElementById('fromTime').value;
+    const toDate = document.getElementById('toDate').value;
+    const toTime = document.getElementById('toTime').value;
+    const regNumber = document.getElementById('regNumber').value.toLowerCase();
     
-    let visibleRows = 0;
+    // Combine date and time for comparison
+    const fromDateTime = fromDate && fromTime ? new Date(`${fromDate}T${fromTime}`) : null;
+    const toDateTime = toDate && toTime ? new Date(`${toDate}T${toTime}`) : null;
     
-    // If search is empty, show all rows
-    if (filter === '') {
-        for (let i = 0; i < rows.length; i++) {
-            rows[i].style.display = '';
-        }
-        searchInfo.classList.add('d-none');
-        noResults.classList.add('d-none');
-        return;
-    }
+    const rows = document.querySelectorAll('.data-row');
+    let visibleCount = 0;
     
-    // Search through all rows
-    for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        const cells = row.getElementsByTagName('td');
-        let found = false;
+    rows.forEach(row => {
+        const rowDate = new Date(row.getAttribute('data-date'));
+        const rowReg = row.getAttribute('data-registration').toLowerCase();
         
-        // Search in all cells of the row
-        for (let j = 0; j < cells.length; j++) {
-            const cellText = cells[j].textContent || cells[j].innerText;
-            if (cellText.toLowerCase().indexOf(filter) > -1) {
-                found = true;
-                break;
-            }
+        let dateMatch = true;
+        let regMatch = true;
+        
+        // Date range filtering
+        if (fromDateTime && rowDate < fromDateTime) {
+            dateMatch = false;
+        }
+        if (toDateTime && rowDate > toDateTime) {
+            dateMatch = false;
         }
         
-        if (found) {
+        // Registration number filtering
+        if (regNumber && !rowReg.includes(regNumber)) {
+            regMatch = false;
+        }
+        
+        if (dateMatch && regMatch) {
             row.style.display = '';
-            visibleRows++;
-            // Highlight matching text
-            highlightSearchTerm(row, filter);
+            visibleCount++;
         } else {
             row.style.display = 'none';
         }
-    }
+    });
     
-    // Show search results info
-    if (visibleRows > 0) {
-        searchResults.textContent = `Found ${visibleRows} result(s) for "${filter}"`;
-        searchInfo.classList.remove('d-none');
-        noResults.classList.add('d-none');
-    } else {
-        searchInfo.classList.add('d-none');
-        noResults.classList.remove('d-none');
-    }
-}
-
-function highlightSearchTerm(row, searchTerm) {
-    const cells = row.getElementsByTagName('td');
-    
-    for (let i = 0; i < cells.length; i++) {
-        const cell = cells[i];
-        // Skip cells with buttons (LATRA Response column)
-        if (cell.querySelector('button')) continue;
-        
-        const originalText = cell.textContent || cell.innerText;
-        const highlightedText = originalText.replace(
-            new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi'),
-            '<mark class="bg-warning">$1</mark>'
-        );
-        
-        if (highlightedText !== originalText) {
-            cell.innerHTML = highlightedText;
-        }
-    }
-}
-
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function clearSearch() {
-    const input = document.getElementById('searchInput');
-    const table = document.getElementById('dataTable');
-    const tbody = document.getElementById('tableBody');
-    const rows = tbody.getElementsByTagName('tr');
-    const searchInfo = document.getElementById('searchInfo');
+    // Show/hide no results message
     const noResults = document.getElementById('noResults');
-    
-    // Clear input
-    input.value = '';
-    
-    // Show all rows and remove highlights
-    for (let i = 0; i < rows.length; i++) {
-        rows[i].style.display = '';
-        // Remove highlights
-        const cells = rows[i].getElementsByTagName('td');
-        for (let j = 0; j < cells.length; j++) {
-            const cell = cells[j];
-            if (!cell.querySelector('button')) {
-                const text = cell.textContent || cell.innerText;
-                cell.innerHTML = text; // Remove any HTML formatting
-            }
-        }
+    if (visibleCount === 0) {
+        noResults.classList.remove('d-none');
+    } else {
+        noResults.classList.add('d-none');
     }
-    
-    // Hide search info
-    searchInfo.classList.add('d-none');
-    noResults.classList.add('d-none');
-    
-    // Show success message
-    Swal.fire({
-        icon: 'success',
-        title: 'Search Cleared!',
-        text: 'All records are now visible',
-        timer: 1500,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end',
-        showClass: {
-            popup: 'animate__animated animate__fadeInRight'
-        },
-        hideClass: {
-            popup: 'animate__animated animate__fadeOutRight'
-        }
-    });
 }
 
-// Add search shortcuts
+function clearFilters() {
+    // Clear input fields
+    document.getElementById('fromDate').value = '';
+    document.getElementById('fromTime').value = '';
+    document.getElementById('toDate').value = '';
+    document.getElementById('toTime').value = '';
+    document.getElementById('regNumber').value = '';
+    
+    // Show all rows
+    const rows = document.querySelectorAll('.data-row');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    // Hide no results message
+    document.getElementById('noResults').classList.add('d-none');
+}
+
+// Initialize with current day as default
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    
-    // Load activity names only
-    loadActivityNames();
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl+F or Cmd+F to focus search
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-            e.preventDefault();
-            searchInput.focus();
-        }
-        
-        // Escape to clear search
-        if (e.key === 'Escape' && document.activeElement === searchInput) {
-            clearSearch();
-        }
-    });
-    
-    // Add search icon animation
-    searchInput.addEventListener('focus', function() {
-        const icon = this.previousElementSibling.querySelector('i');
-        icon.classList.add('text-primary');
-        icon.style.transform = 'scale(1.1)';
-    });
-    
-    searchInput.addEventListener('blur', function() {
-        const icon = this.previousElementSibling.querySelector('i');
-        icon.classList.remove('text-primary');
-        icon.style.transform = 'scale(1)';
-    });
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fromDate').value = today;
+    document.getElementById('toDate').value = today;
 });
-
-// Activity codes mapping (from services.py)
-const ACTIVITY_CODES = {
-    1: "Movement/Logging (Default)",
-    2: "Engine ON",
-    3: "Engine OFF",
-    4: "Speeding",
-    5: "Hash Braking",
-    6: "Hash Turning",
-    7: "Hash Acceleration",
-    8: "Panic Button (Driver)",
-    9: "Internal Battery Low",
-    10: "External Power Disconnected",
-    11: "Excessive Idle",
-    12: "Accident",
-    13: "Panic Button (Passenger)",
-    14: "Device Tempering",
-    15: "Black Box Data Logging",
-    16: "Fuel data report",
-    17: "Invalid Scan",
-    18: "Engine Start",
-    19: "Engine Stop",
-    20: "Enter Boundary",
-    21: "Leave Boundary",
-    22: "Enter Checkpoint",
-    23: "Leave Checkpoint",
-    24: "Ibutton Scan (Regular)"
-};
-
-function loadActivityNames() {
-    const activityElements = document.querySelectorAll('.activity-name');
-    
-    activityElements.forEach(element => {
-        const activityId = parseInt(element.getAttribute('data-activity-id'));
-        const activityName = ACTIVITY_CODES[activityId] || "Unknown Activity";
-        
-        element.innerHTML = `<span class="text-muted">${activityName}</span>`;
-        element.title = `Activity ID: ${activityId} - ${activityName}`;
-    });
-}
-
-function loadUnassignedDevices() {
-    fetch('{% url "frontend:get_unassigned_devices" %}')
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('vehicleImei');
-            select.innerHTML = '<option value="">Select an IMEI device</option>';
-            
-            if (data.devices.length === 0) {
-                select.innerHTML = '<option value="">No unassigned devices available</option>';
-            } else {
-                data.devices.forEach(device => {
-                    const option = document.createElement('option');
-                    option.value = device.id;
-                    option.textContent = device.imei_number;
-                    select.appendChild(option);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error loading devices:', error);
-            document.getElementById('vehicleImei').innerHTML = '<option value="">Error loading devices</option>';
-        });
-}
-
-function addDevice() {
-    const imei = document.getElementById('deviceImei').value.trim();
-    
-    if (!imei) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Missing Information',
-            text: 'Please enter an IMEI number',
-            confirmButtonColor: '#667eea',
-            showClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            },
-            hideClass: {
-                popup: 'animate__animated animate__fadeOutUp'
-            }
-        });
-        return;
-    }
-    
-    if (imei.length !== 15 || !/^\d+$/.test(imei)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid IMEI',
-            text: 'IMEI must be exactly 15 digits',
-            confirmButtonColor: '#667eea',
-            showClass: {
-                popup: 'animate__animated animate__shakeX'
-            }
-        });
-        return;
-    }
-    
-    // Show loading
-    Swal.fire({
-        title: 'Adding Device...',
-        text: 'Please wait while we add the device',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-    
-    fetch('{% url "frontend:add_device" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-            imei_number: imei
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Device added successfully!',
-                confirmButtonColor: '#28a745',
-                showClass: {
-                    popup: 'animate__animated animate__bounceIn'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__bounceOut'
-                }
-            }).then(() => {
-                document.getElementById('addDeviceForm').reset();
-                $('#addDeviceModal').modal('hide');
-                location.reload();
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: data.error,
-                confirmButtonColor: '#dc3545',
-                showClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Network Error!',
-            text: 'An error occurred while adding the device',
-            confirmButtonColor: '#dc3545',
-            showClass: {
-                popup: 'animate__animated animate__shakeX'
-            }
-        });
-    });
-}
-
-function addVehicle() {
-    const registrationNumber = document.getElementById('registrationNumber').value.trim();
-    const imeiId = document.getElementById('vehicleImei').value;
-    
-    if (!registrationNumber) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Missing Information',
-            text: 'Please enter a registration number',
-            confirmButtonColor: '#667eea',
-            showClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            },
-            hideClass: {
-                popup: 'animate__animated animate__fadeOutUp'
-            }
-        });
-        return;
-    }
-    
-    if (!imeiId) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Missing Information',
-            text: 'Please select an IMEI device',
-            confirmButtonColor: '#667eea',
-            showClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            }
-        });
-        return;
-    }
-    
-    // Show loading
-    Swal.fire({
-        title: 'Adding Vehicle...',
-        text: 'Please wait while we add the vehicle',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-    
-    fetch('{% url "frontend:add_vehicle" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-            registration_number: registrationNumber,
-            imei_id: imeiId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Vehicle added successfully!',
-                confirmButtonColor: '#28a745',
-                showClass: {
-                    popup: 'animate__animated animate__bounceIn'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__bounceOut'
-                }
-            }).then(() => {
-                document.getElementById('addVehicleForm').reset();
-                $('#addVehicleModal').modal('hide');
-                location.reload();
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: data.error,
-                confirmButtonColor: '#dc3545',
-                showClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Network Error!',
-            text: 'An error occurred while adding the vehicle',
-            confirmButtonColor: '#dc3545',
-            showClass: {
-                popup: 'animate__animated animate__shakeX'
-            }
-        });
-    });
-}
-
-function showResponseModal(response) {
-    try {
-        const responseObj = JSON.parse(response);
-        const formattedResponse = JSON.stringify(responseObj, null, 2);
-        
-        Swal.fire({
-            title: '<i class="fas fa-info-circle"></i> LATRA Response',
-            html: `<pre style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;"><code>${formattedResponse}</code></pre>`,
-            width: '600px',
-            showCloseButton: true,
-            confirmButtonText: '<i class="fas fa-check"></i> Close',
-            confirmButtonColor: '#667eea',
-            showClass: {
-                popup: 'animate__animated animate__fadeInUp'
-            },
-            hideClass: {
-                popup: 'animate__animated animate__fadeOutDown'
-            }
-        });
-    } catch (e) {
-        Swal.fire({
-            title: '<i class="fas fa-info-circle"></i> LATRA Response',
-            html: `<pre style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;"><code>${response}</code></pre>`,
-            width: '600px',
-            showCloseButton: true,
-            confirmButtonText: '<i class="fas fa-check"></i> Close',
-            confirmButtonColor: '#667eea',
-            showClass: {
-                popup: 'animate__animated animate__fadeInUp'
-            }
-        });
-    }
-}
-
-// Auto-refresh data every 30 seconds
-setInterval(function() {
-    // Only refresh if we're still on the dashboard page
-    if (window.location.pathname.includes('dashboard')) {
-        window.location.reload();
-    }
-}, 30000);
-
-// Load manage data when modal is opened
-$('#manageModal').on('show.bs.modal', function() {
-    loadManageData();
-});
-
-function loadManageData() {
-    // Load devices
-    fetch('/admin/vehicles/deviceimei/?format=json', {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            // Fallback: load all devices via custom endpoint
-            return loadDevicesData();
-        }
-        return response.json();
-    })
-    .catch(() => loadDevicesData());
-    
-    // Load vehicles  
-    fetch('/admin/vehicles/vehicle/?format=json', {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            return loadVehiclesData();
-        }
-        return response.json();
-    })
-    .catch(() => loadVehiclesData());
-}
-
-function loadDevicesData() {
-    // Simple implementation to show devices
-    const devicesList = document.getElementById('devicesList');
-    devicesList.innerHTML = '<div class="text-muted">Loading devices...</div>';
-    
-    // For now, show a simple list - you can enhance this with actual API calls
-    setTimeout(() => {
-        devicesList.innerHTML = `
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                Use the main dashboard to manage devices and vehicles.
-                <br><small>Delete functionality available for unassigned devices only.</small>
-            </div>
-        `;
-    }, 1000);
-}
-
-function loadVehiclesData() {
-    const vehiclesList = document.getElementById('vehiclesList');
-    vehiclesList.innerHTML = '<div class="text-muted">Loading vehicles...</div>';
-    
-    setTimeout(() => {
-        vehiclesList.innerHTML = `
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                Use the main dashboard to manage devices and vehicles.
-                <br><small>Vehicle deletion will unassign the IMEI device.</small>
-            </div>
-        `;
-    }, 1000);
-}
-
-function refreshManageData() {
-    Swal.fire({
-        title: 'Refreshing...',
-        text: 'Please wait while we refresh the data',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-    
-    setTimeout(() => {
-        loadManageData();
-        Swal.fire({
-            icon: 'success',
-            title: 'Refreshed!',
-            text: 'Data has been refreshed',
-            timer: 1500,
-            showConfirmButton: false,
-            showClass: {
-                popup: 'animate__animated animate__bounceIn'
-            }
-        });
-    }, 1000);
-}
-
-function deleteDevice(deviceId, imeiNumber) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: `You are about to delete device with IMEI: ${imeiNumber}`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: '<i class="fas fa-trash"></i> Yes, delete it!',
-        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
-        showClass: {
-            popup: 'animate__animated animate__fadeInDown'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Show loading
-            Swal.fire({
-                title: 'Deleting...',
-                text: 'Please wait while we delete the device',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            fetch(`/delete-device/${deviceId}/`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Deleted!',
-                        text: data.message,
-                        confirmButtonColor: '#28a745',
-                        showClass: {
-                            popup: 'animate__animated animate__bounceIn'
-                        }
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: data.error,
-                        confirmButtonColor: '#dc3545',
-                        showClass: {
-                            popup: 'animate__animated animate__shakeX'
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Network Error!',
-                    text: 'An error occurred while deleting the device',
-                    confirmButtonColor: '#dc3545',
-                    showClass: {
-                        popup: 'animate__animated animate__shakeX'
-                    }
-                });
-            });
-        }
-    });
-}
-
-function deleteVehicle(vehicleId, registrationNumber) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: `You are about to delete vehicle: ${registrationNumber}`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: '<i class="fas fa-trash"></i> Yes, delete it!',
-        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
-        showClass: {
-            popup: 'animate__animated animate__fadeInDown'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Show loading
-            Swal.fire({
-                title: 'Deleting...',
-                text: 'Please wait while we delete the vehicle',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            fetch(`/delete-vehicle/${vehicleId}/`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Deleted!',
-                        text: data.message,
-                        confirmButtonColor: '#28a745',
-                        showClass: {
-                            popup: 'animate__animated animate__bounceIn'
-                        }
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: data.error,
-                        confirmButtonColor: '#dc3545',
-                        showClass: {
-                            popup: 'animate__animated animate__shakeX'
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Network Error!',
-                    text: 'An error occurred while deleting the vehicle',
-                    confirmButtonColor: '#dc3545',
-                    showClass: {
-                        popup: 'animate__animated animate__shakeX'
-                    }
-                });
-            });
-        }
-    });
-}
 </script>
 {% endblock %}

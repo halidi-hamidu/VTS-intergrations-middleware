@@ -1,0 +1,461 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Customers - LATRA GPS{% endblock %}
+
+{% block page_title %}Customers{% endblock %}
+
+{% block content %}
+<div class="customer_inner_content">
+        
+    <div class="table-responsive">
+        <div class="table-header d-flex justify-content-between align-items-center p-3">
+            <h5>Customers List</h5>
+
+            <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                        <i class="fas fa-plus me-1"></i>Add Customer
+                    </button>
+                <div>
+                    <div class="input-group me-3" style="width: 300px;">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control" 
+                                placeholder="Search in table..." 
+                                onkeyup="filterTable()" 
+                                style="border-left: none;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="searchInfo" class="alert alert-info d-none mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="searchResults"></span>
+                        <button type="button" class="btn-close ms-2" onclick="clearSearch()" style="float: right;"></button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <table id="dataTable" class="table table-hover w-100">
+            <thead class="table-dark">
+                <tr>
+                    <th><i class="fas fa-calendar"></i> SN</th>
+                    <th><i class="fas fa-microchip"></i> Fullname</th>
+                    <th><i class="fas fa-calendar"></i> Email</th>
+                    <th><i class="fas fa-calendar"></i> Phonenumber</th>
+                    <th><i class="fas fa-calendar"></i> Date Created</th>
+                    <th><i class="fas fa-microchip"></i> Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for customer in customers %}
+                <tr>
+                    <td>
+                        <!-- {{device.id}} -->
+                        {{forloop.counter}}
+                    </td>
+                    <td>
+                        {{customer.name}}
+                    </td>
+                    <td>
+                        {{customer.email}}
+                    </td>
+                    <td>
+                        {{customer.phone}}
+                    </td>
+                    <td>
+                        <small>{{ customer.created_at|date:"Y-m-d H:i:s" }}</small>
+                    </td>
+                    <td>
+                        <a href="" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#addProjectModal{{customer.id}}"><i class="fa fa-plus"></i> Project</a>
+                        <a href="" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCustomerModal{{customer.id}}"><i class="fa fa-edit"></i></a>
+                        <a href="" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCustomerModal{{customer.id}}"><i class="fa fa-trash"></i></a>
+                        <a href="" class="btn btn-sm btn-warning" data-bs-toggle="offcanvas" data-bs-target="#customerDetailView{{customer.id}}"><i class="fa fa-eye"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No devices available yet.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </tbody>
+        </table>
+        
+        <!-- No Results Message -->
+        <div id="noResults" class="text-center py-4 d-none">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No results found for your search.</p>
+            <button class="btn btn-outline-primary" onclick="clearSearch()">
+                <i class="fas fa-times me-1"></i>Clear Search
+            </button>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>Add New Customer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCustomerForm" action="{% url 'frontend:customer' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="Fullname" class="form-label">Fullname</label>
+                        {{customer_form.name}}
+                    </div>
+                    <div class="mb-3">
+                        <label for="Email" class="form-label">Email</label>
+                        {{customer_form.email}}
+                    </div>
+                    <div class="mb-3">
+                        <label for="Phonenumber" class="form-label">Phonenumber</label>
+                        {{customer_form.phone}}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" name="add_customer_btn">
+                            <i class="fas fa-plus me-1"></i>Add Customer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for customer in customers %}
+<!-- Update Customer Modal -->
+<div class="modal fade" id="editCustomerModal{{customer.id}}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>Edit Customer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="EditCustomerForm" action="{% url 'frontend:customer' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                    <div class="mb-3">
+                        <label for="Fullname" class="form-label">Fullname</label>
+                        <input type="text" name="name" placeholder="Enter Fullname" class="form-control" value="{{customer.name}}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="Email" class="form-label">Email</label>
+                        <input type="email" name="email" placeholder="Enter Email" class="form-control" value="{{customer.email}}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="Phonenumber" class="form-label">Phonenumber</label>
+                        <input type="text" name="phone" placeholder="Enter Phonenumber" class="form-control" value="{{customer.phone}}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" name="edit_customer_btn">
+                            <i class="fas fa-plus me-1"></i>Edit Customer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+{% for customer in customers %}
+<!-- Add Project Modal -->
+<div class="modal fade" id="addProjectModal{{customer.id}}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-car me-2"></i>Add Project for {{ customer.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="AddProjectForm{{customer.id}}" class="add-project-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                    <input type="hidden" name="add_project_btn" value="true">
+                    <div class="mb-3">
+                        <label class="form-label">Registration Number</label>
+                        <input type="text" name="registration_number" class="form-control" required
+                               value="{{ vehicle_form.registration_number.value|default_if_none:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Device IMEI</label>
+                        <select name="imei_number" id="imei-select2-{{customer.id}}" class="form-control select2-imei" required>
+                            <option value="">Select IMEI</option>
+                            {% for imei in devices %}
+                                <option value="{{imei.imei_number}}">
+                                    {{imei.imei_number}}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add Project
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for customer in customers %}
+<!-- Delete Customer Modal -->
+<div class="modal fade" id="deleteCustomerModal{{customer.id}}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash me-2"></i>Delete Customer 
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="DeleteCustomerForm" action="{% url 'frontend:customer' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                        <p>Aye you sure you want to delete this customer ?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" name="delete_cutomer_btn">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for customer in customers %}
+<div class="offcanvas offcanvas-end w-100" data-bs-backdrop="static" tabindex="-1" id="customerDetailView{{customer.id}}" aria-labelledby="customerDetailView{{customer.id}}Label">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="customerDetailView{{customer.id}}Label">Customer Informations</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+
+    <div>
+        <p>Customer Email ~ {{customer.email}}</p>
+        <p>Customer Name ~ {{customer.name}}</p>
+        <p>Customer Phonenumber ~ {{customer.phone}}</p>
+    </div>
+    
+    <!-- <div class="table-responsive">
+        <table id="dataTable" class="table table-hover w-100">
+            <thead class="table-dark">
+                <tr>
+                    <th><i class="fas fa-calendar"></i> ID</th>
+                    <th><i class="fas fa-microchip"></i> Fullname</th>
+                    <th><i class="fas fa-calendar"></i> Email</th>
+                    <th><i class="fas fa-calendar"></i> Phonenumber</th>
+                    <th><i class="fas fa-calendar"></i> Date Created</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for customer in customers %}
+                <tr>
+                    <td>
+                        {{forloop.counter}}
+                    </td>
+                    <td>
+                        {{customer.name}}
+                    </td>
+                    <td>
+                        {{customer.email}}
+                    </td>
+                    <td>
+                        {{customer.phone}}
+                    </td>
+                    <td>
+                        <small>{{ customer.created_at|date:"Y-m-d H:i:s" }}</small>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No devices available yet.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </tbody>
+        </table>
+    </div> -->
+    <h5 class="text-dark">Projects for {{ customer.name }}</h5>
+    <div class="table-responsive mt-3">
+        <table id="dataTable" class="table table-hover w-100">
+            <thead class="table-dark">
+                <tr>
+                    <th><i class="fas fa-calendar"></i> ID</th>
+                    <th><i class="fas fa-microchip"></i> Registration Number</th>
+                    <th><i class="fas fa-calendar"></i> Device Imei</th>
+                    <th><i class="fas fa-calendar"></i> Date Created</th>
+                    <th><i class="fas fa-calendar"></i> Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for vehicle in vehicles %}
+                    {% if vehicle.customer.email == customer.email %}
+                    <tr>
+                        <td>
+                            <!-- {{device.id}} -->
+                            {{vehicle.id}}
+                        </td>
+                        <td>
+                            {{vehicle.registration_number}}
+                        </td>
+                        <td>
+                            {{vehicle.imei.imei_number}}
+                        </td>
+                        <td>
+                            <small>{{ customer.created_at|date:"Y-m-d H:i:s" }}</small>
+                        </td>
+                        <td>
+                            <a href="" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editProjectModal{{vehicle.id}}"><i class="fa fa-edit"></i></a>
+                            <!-- <a href="" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteProjectModal{{vehicle.id}}"><i class="fa fa-trash"></i></a>
+                            <a href="" class="btn btn-sm btn-warning" data-bs-toggle="offcanvas" data-bs-target="#customerDetailView{{customer.id}}"><i class="fa fa-eye"></i></a> -->
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No project available yet.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </tbody>
+        </table>
+    </div>
+
+  </div>
+</div>
+{% endfor %}
+
+{% for customer in customers %}
+{% for vehicle in vehicles %}
+{% if vehicle.customer.email == customer.email %}
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal{{vehicle.id}}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-car me-2"></i>Edit Project for {{ customer.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="EditProjectForm{{vehicle.id}}" class="edit-project-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                    <input type="hidden" name="edit_project_btn" value="true">
+                    <div class="mb-3">
+                        <label class="form-label">Registration Number</label>
+                        <input type="text" name="registration_number" class="form-control" required
+                               value="{{ vehicle.registration_number }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Device IMEI</label>
+                        <select name="imei_number" id="edit-imei-select2-{{vehicle.id}}" class="form-control select2-imei" required>
+                            <option value="">Select IMEI</option>
+                            {% for imei in devices %}
+                                <option value="{{imei.imei_number}}" 
+                                        {% if vehicle.imei.imei_number == imei.imei_number %}selected{% endif %}>
+                                    {{imei.imei_number}}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" name="edit_project_btn">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+{% for customer in customers %}
+{% for vehicle in vehicles %}
+{% if vehicle.customer.email == customer.email %}
+<!-- Delete Project Modal -->
+<div class="modal fade" id="deleteProjectModal{{vehicle.id}}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash me-2"></i>Delete Project
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="DeleteProjectForm{{vehicle.id}}" class="delete-project-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                    <input type="hidden" name="delete_project_btn" value="true">
+                    <div class="mb-3">
+                        <p>Are you sure you want to delete this project?</p>
+                        <div class="alert alert-danger">
+                            <strong>Project Details:</strong><br>
+                            Customer: {{ customer.name }}<br>
+                            Registration: {{ vehicle.registration_number }}<br>
+                            IMEI: {{ vehicle.imei.imei_number }}
+                        </div>
+                        <p class="text-danger">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" name="delete_project_btn">
+                            <i class="fas fa-trash me-1"></i> Delete Project
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+{% endblock %}

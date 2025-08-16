@@ -1,0 +1,138 @@
+{% extends "./base.html" %}
+
+{% block title %}Skipping Data - LATRA GPS{% endblock %}
+
+{% block page_title %}Skipping{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">Skipping Data</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover w-100">
+                <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Status</th>
+                        <th>Raw Data</th>
+                        <th>Processed Data</th>
+                        <th>LATRA Response</th>
+                        <th>Reported At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in page_obj %}
+                    <tr>
+                        <td>{{ item.vehicle.registration_number }}</td>
+                        <td>
+                            {% if item.is_success %}
+                                <span class="badge bg-success">Success</span>
+                            {% else %}
+                                <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                    data-bs-target="#rawDataModal{{ item.id }}">
+                                View Raw
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" 
+                                    data-bs-target="#processedDataModal{{ item.id }}">
+                                View Processed
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
+                                    data-bs-target="#latraResponseModal{{ item.id }}">
+                                View Response
+                            </button>
+                        </td>
+                        <td>{{ item.created_at }}</td>
+                    </tr>
+                    
+                    <!-- Modals for each data type -->
+                    <div class="modal fade" id="rawDataModal{{ item.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Raw Data - {{ item.vehicle.registration_number }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <pre>{{ item.raw_data|pprint }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal fade" id="processedDataModal{{ item.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Processed Data - {{ item.vehicle.registration_number }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <pre>{{ item.processed_data|pprint }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal fade" id="latraResponseModal{{ item.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">LATRA Response - {{ item.vehicle.registration_number }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <pre>{{ item.latra_response|pprint }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No skipping data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}
