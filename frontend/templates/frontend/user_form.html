@@ -1,0 +1,101 @@
+{% extends './base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} User - LATRA GPS{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit User{% else %}Create New User{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.username.errors.as_text }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.email.errors.as_text }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                    {{ form.first_name }}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                    {{ form.phone }}
+                </div>
+                {% if request.user.user_type == 'admin' %}
+                    <div class="col-md-6">
+                        <label for="{{ form.user_type.id_for_label }}" class="form-label">Role</label>
+                        {{ form.user_type }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if not form.instance.pk %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.password1.errors.as_text }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.password2.errors.as_text }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if request.user.user_type == 'admin' %}
+            <div class="mb-3 form-check">
+                {{ form.is_active }}
+                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+            </div>
+            {% endif %}
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'frontend:user_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'frontend:user_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

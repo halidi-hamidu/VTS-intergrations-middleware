@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'vehicles',
     'data_reported',
     'frontend',
+    'django_select2',
 ]
 
 MIDDLEWARE = [
@@ -112,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Dar_es_Salaam'
 
 USE_I18N = True
 
@@ -143,3 +144,4 @@ LATRA_API_TOKEN = os.getenv('LATRA_API_TOKEN')
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
+AUTH_USER_MODEL = 'frontend.CustomUser'

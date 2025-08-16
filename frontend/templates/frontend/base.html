@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LATRA GPS Tracking System{% endblock %}</title>
@@ -43,6 +44,33 @@
             --sidebar-hover: rgba(79, 70, 229, 0.2);
             --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Custom Select2 styles for modal */
+        .select2-container--bootstrap-5 .select2-selection {
+            padding: 0.375rem 0.75rem;
+            min-height: calc(2.25rem + 2px);
+        }
+        .select2-container--bootstrap-5 .select2-dropdown {
+            z-index: 1065 !important;
+        }
+        .select2-search--dropdown {
+            padding: 0.5rem;
+        }
+        .select2-results__option {
+            padding: 0.5rem 1rem;
+        }
+
+        input[name='password1'], input[name='password2'] {
+            width: 100%;
+            border-radius: 15px;
+            border: 2px solid var(--border-color);
+            padding: 15px 20px;
+            background: rgba(37, 45, 65, 0.9);
+            color: #f1f5f9;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         body {
@@ -1503,6 +1531,26 @@
                                 <i class="fas fa-tachometer-alt"></i> Dashboard
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'device' %}active{% endif %}" href="{% url 'frontend:device' %}">
+                                <i class="fas fa-microchip"></i> Devices
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'customer' %}active{% endif %}" href="{% url 'frontend:customer' %}">
+                                <i class="fas fa-users"></i> Customers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'skipping' %}active{% endif %}" href="{% url 'frontend:skipping' %}">
+                                <i class="fas fa-exchange-alt"></i> Skipping
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'frontend:user_list' %}">
+                                <i class="fas fa-users"></i> User Management
+                            </a>
+                        </li>
                         <li class="nav-item mt-auto">
                             <a class="nav-link" href="{% url 'frontend:logout' %}">
                                 <i class="fas fa-sign-out-alt"></i> Logout
@@ -1546,34 +1594,679 @@
         {% block login_content %}{% endblock %}
     {% endif %}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    // Update current time
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        const timeElement = document.getElementById('current-time');
+        if (timeElement) {
+            timeElement.textContent = timeString;
+        }
+    }
     
-    <script>
-        // Update current time
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            const timeElement = document.getElementById('current-time');
-            if (timeElement) {
-                timeElement.textContent = timeString;
+    // Update time every second
+    setInterval(updateTime, 1000);
+    updateTime(); // Initial call
+    
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $('.alert').fadeOut('slow');
+    }, 5000);
+</script>
+
+<!-- Include these in your base template or before closing </body> -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2 when modal is shown
+    $('.modal').on('shown.bs.modal', function() {
+        $(this).find('.select2-imei').select2({
+            placeholder: "Select IMEI",
+            allowClear: true,
+            dropdownParent: $(this),
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+
+    // Destroy Select2 when modal is hidden
+    $('.modal').on('hidden.bs.modal', function() {
+        $(this).find('.select2-imei').select2('destroy');
+    });
+
+});
+</script>
+
+
+<script>
+// Load unassigned devices when vehicle modal is opened
+$('#addVehicleModal').on('show.bs.modal', function() {
+    loadUnassignedDevices();
+});
+
+// Search functionality
+function filterTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase().trim();
+    const table = document.getElementById('dataTable');
+    const tbody = document.getElementById('tableBody');
+    const rows = tbody.getElementsByTagName('tr');
+    const searchInfo = document.getElementById('searchInfo');
+    const searchResults = document.getElementById('searchResults');
+    const noResults = document.getElementById('noResults');
+    
+    let visibleRows = 0;
+    
+    // If search is empty, show all rows
+    if (filter === '') {
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].style.display = '';
+        }
+        searchInfo.classList.add('d-none');
+        noResults.classList.add('d-none');
+        return;
+    }
+    
+    // Search through all rows
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.getElementsByTagName('td');
+        let found = false;
+        
+        // Search in all cells of the row
+        for (let j = 0; j < cells.length; j++) {
+            const cellText = cells[j].textContent || cells[j].innerText;
+            if (cellText.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
             }
         }
         
-        // Update time every second
-        setInterval(updateTime, 1000);
-        updateTime(); // Initial call
-        
-        // Auto-dismiss alerts after 5 seconds
-        setTimeout(function() {
-            $('.alert').fadeOut('slow');
-        }, 5000);
-    </script>
+        if (found) {
+            row.style.display = '';
+            visibleRows++;
+            // Highlight matching text
+            highlightSearchTerm(row, filter);
+        } else {
+            row.style.display = 'none';
+        }
+    }
     
-    {% block extra_js %}{% endblock %}
+    // Show search results info
+    if (visibleRows > 0) {
+        searchResults.textContent = `Found ${visibleRows} result(s) for "${filter}"`;
+        searchInfo.classList.remove('d-none');
+        noResults.classList.add('d-none');
+    } else {
+        searchInfo.classList.add('d-none');
+        noResults.classList.remove('d-none');
+    }
+}
+
+function highlightSearchTerm(row, searchTerm) {
+    const cells = row.getElementsByTagName('td');
+    
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        // Skip cells with buttons (LATRA Response column)
+        if (cell.querySelector('button')) continue;
+        
+        const originalText = cell.textContent || cell.innerText;
+        const highlightedText = originalText.replace(
+            new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi'),
+            '<mark class="bg-warning">$1</mark>'
+        );
+        
+        if (highlightedText !== originalText) {
+            cell.innerHTML = highlightedText;
+        }
+    }
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function clearSearch() {
+    const input = document.getElementById('searchInput');
+    const table = document.getElementById('dataTable');
+    const tbody = document.getElementById('tableBody');
+    const rows = tbody.getElementsByTagName('tr');
+    const searchInfo = document.getElementById('searchInfo');
+    const noResults = document.getElementById('noResults');
+    
+    // Clear input
+    input.value = '';
+    
+    // Show all rows and remove highlights
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].style.display = '';
+        // Remove highlights
+        const cells = rows[i].getElementsByTagName('td');
+        for (let j = 0; j < cells.length; j++) {
+            const cell = cells[j];
+            if (!cell.querySelector('button')) {
+                const text = cell.textContent || cell.innerText;
+                cell.innerHTML = text; // Remove any HTML formatting
+            }
+        }
+    }
+    
+    // Hide search info
+    searchInfo.classList.add('d-none');
+    noResults.classList.add('d-none');
+    
+    // Show success message
+    Swal.fire({
+        icon: 'success',
+        title: 'Search Cleared!',
+        text: 'All records are now visible',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+        showClass: {
+            popup: 'animate__animated animate__fadeInRight'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutRight'
+        }
+    });
+}
+
+// Add search shortcuts
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    
+    // Load activity names only
+    loadActivityNames();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+F or Cmd+F to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+        
+        // Escape to clear search
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+            clearSearch();
+        }
+    });
+    
+    // Add search icon animation
+    searchInput.addEventListener('focus', function() {
+        const icon = this.previousElementSibling.querySelector('i');
+        icon.classList.add('text-primary');
+        icon.style.transform = 'scale(1.1)';
+    });
+    
+    searchInput.addEventListener('blur', function() {
+        const icon = this.previousElementSibling.querySelector('i');
+        icon.classList.remove('text-primary');
+        icon.style.transform = 'scale(1)';
+    });
+});
+
+// Activity codes mapping (from services.py)
+const ACTIVITY_CODES = {
+    1: "Movement/Logging (Default)",
+    2: "Engine ON",
+    3: "Engine OFF",
+    4: "Speeding",
+    5: "Hash Braking",
+    6: "Hash Turning",
+    7: "Hash Acceleration",
+    8: "Panic Button (Driver)",
+    9: "Internal Battery Low",
+    10: "External Power Disconnected",
+    11: "Excessive Idle",
+    12: "Accident",
+    13: "Panic Button (Passenger)",
+    14: "Device Tempering",
+    15: "Black Box Data Logging",
+    16: "Fuel data report",
+    17: "Invalid Scan",
+    18: "Engine Start",
+    19: "Engine Stop",
+    20: "Enter Boundary",
+    21: "Leave Boundary",
+    22: "Enter Checkpoint",
+    23: "Leave Checkpoint",
+    24: "Ibutton Scan (Regular)"
+};
+
+function loadActivityNames() {
+    const activityElements = document.querySelectorAll('.activity-name');
+    
+    activityElements.forEach(element => {
+        const activityId = parseInt(element.getAttribute('data-activity-id'));
+        const activityName = ACTIVITY_CODES[activityId] || "Unknown Activity";
+        
+        element.innerHTML = `<span class="text-muted">${activityName}</span>`;
+        element.title = `Activity ID: ${activityId} - ${activityName}`;
+    });
+}
+
+function loadUnassignedDevices() {
+    fetch('{% url "frontend:get_unassigned_devices" %}')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('vehicleImei');
+            select.innerHTML = '<option value="">Select an IMEI device</option>';
+            
+            if (data.devices.length === 0) {
+                select.innerHTML = '<option value="">No unassigned devices available</option>';
+            } else {
+                data.devices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.id;
+                    option.textContent = device.imei_number;
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading devices:', error);
+            document.getElementById('vehicleImei').innerHTML = '<option value="">Error loading devices</option>';
+        });
+}
+
+function addVehicle() {
+    const registrationNumber = document.getElementById('registrationNumber').value.trim();
+    const imeiId = document.getElementById('vehicleImei').value;
+    
+    if (!registrationNumber) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Information',
+            text: 'Please enter a registration number',
+            confirmButtonColor: '#667eea',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            }
+        });
+        return;
+    }
+    
+    if (!imeiId) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Information',
+            text: 'Please select an IMEI device',
+            confirmButtonColor: '#667eea',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            }
+        });
+        return;
+    }
+    
+    // Show loading
+    Swal.fire({
+        title: 'Adding Vehicle...',
+        text: 'Please wait while we add the vehicle',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    fetch('{% url "frontend:customer" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            registration_number: registrationNumber,
+            imei_id: imeiId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Vehicle added successfully!',
+                confirmButtonColor: '#28a745',
+                showClass: {
+                    popup: 'animate__animated animate__bounceIn'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__bounceOut'
+                }
+            }).then(() => {
+                document.getElementById('addVehicleForm').reset();
+                $('#addVehicleModal').modal('hide');
+                location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: data.error,
+                confirmButtonColor: '#dc3545',
+                showClass: {
+                    popup: 'animate__animated animate__shakeX'
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Network Error!',
+            text: 'An error occurred while adding the vehicle',
+            confirmButtonColor: '#dc3545',
+            showClass: {
+                popup: 'animate__animated animate__shakeX'
+            }
+        });
+    });
+}
+
+function showResponseModal(response) {
+    try {
+        const responseObj = JSON.parse(response);
+        const formattedResponse = JSON.stringify(responseObj, null, 2);
+        
+        Swal.fire({
+            title: '<i class="fas fa-info-circle"></i> LATRA Response',
+            html: `<pre style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;"><code>${formattedResponse}</code></pre>`,
+            width: '600px',
+            showCloseButton: true,
+            confirmButtonText: '<i class="fas fa-check"></i> Close',
+            confirmButtonColor: '#667eea',
+            showClass: {
+                popup: 'animate__animated animate__fadeInUp'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutDown'
+            }
+        });
+    } catch (e) {
+        Swal.fire({
+            title: '<i class="fas fa-info-circle"></i> LATRA Response',
+            html: `<pre style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;"><code>${response}</code></pre>`,
+            width: '600px',
+            showCloseButton: true,
+            confirmButtonText: '<i class="fas fa-check"></i> Close',
+            confirmButtonColor: '#667eea',
+            showClass: {
+                popup: 'animate__animated animate__fadeInUp'
+            }
+        });
+    }
+}
+
+// Auto-refresh data every 30 seconds
+setInterval(function() {
+    // Only refresh if we're still on the dashboard page
+    if (window.location.pathname.includes('dashboard')) {
+        window.location.reload();
+    }
+}, 30000);
+
+// Load manage data when modal is opened
+$('#manageModal').on('show.bs.modal', function() {
+    loadManageData();
+});
+
+function loadManageData() {
+    // Load devices
+    fetch('/admin/vehicles/deviceimei/?format=json', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Fallback: load all devices via custom endpoint
+            return loadDevicesData();
+        }
+        return response.json();
+    })
+    .catch(() => loadDevicesData());
+    
+    // Load vehicles  
+    fetch('/admin/vehicles/vehicle/?format=json', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return loadVehiclesData();
+        }
+        return response.json();
+    })
+    .catch(() => loadVehiclesData());
+}
+
+function loadDevicesData() {
+    // Simple implementation to show devices
+    const devicesList = document.getElementById('devicesList');
+    devicesList.innerHTML = '<div class="text-muted">Loading devices...</div>';
+    
+    // For now, show a simple list - you can enhance this with actual API calls
+    setTimeout(() => {
+        devicesList.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Use the main dashboard to manage devices and vehicles.
+                <br><small>Delete functionality available for unassigned devices only.</small>
+            </div>
+        `;
+    }, 1000);
+}
+
+function loadVehiclesData() {
+    const vehiclesList = document.getElementById('vehiclesList');
+    vehiclesList.innerHTML = '<div class="text-muted">Loading vehicles...</div>';
+    
+    setTimeout(() => {
+        vehiclesList.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Use the main dashboard to manage devices and vehicles.
+                <br><small>Vehicle deletion will unassign the IMEI device.</small>
+            </div>
+        `;
+    }, 1000);
+}
+
+function refreshManageData() {
+    Swal.fire({
+        title: 'Refreshing...',
+        text: 'Please wait while we refresh the data',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    setTimeout(() => {
+        loadManageData();
+        Swal.fire({
+            icon: 'success',
+            title: 'Refreshed!',
+            text: 'Data has been refreshed',
+            timer: 1500,
+            showConfirmButton: false,
+            showClass: {
+                popup: 'animate__animated animate__bounceIn'
+            }
+        });
+    }, 1000);
+}
+
+function deleteDevice(deviceId, imeiNumber) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete device with IMEI: ${imeiNumber}`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash"></i> Yes, delete it!',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+        showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Deleting...',
+                text: 'Please wait while we delete the device',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            fetch(`/delete-device/${deviceId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: data.message,
+                        confirmButtonColor: '#28a745',
+                        showClass: {
+                            popup: 'animate__animated animate__bounceIn'
+                        }
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.error,
+                        confirmButtonColor: '#dc3545',
+                        showClass: {
+                            popup: 'animate__animated animate__shakeX'
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Network Error!',
+                    text: 'An error occurred while deleting the device',
+                    confirmButtonColor: '#dc3545',
+                    showClass: {
+                        popup: 'animate__animated animate__shakeX'
+                    }
+                });
+            });
+        }
+    });
+}
+
+function deleteVehicle(vehicleId, registrationNumber) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete vehicle: ${registrationNumber}`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash"></i> Yes, delete it!',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+        showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Deleting...',
+                text: 'Please wait while we delete the vehicle',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            fetch(`/delete-vehicle/${vehicleId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: data.message,
+                        confirmButtonColor: '#28a745',
+                        showClass: {
+                            popup: 'animate__animated animate__bounceIn'
+                        }
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.error,
+                        confirmButtonColor: '#dc3545',
+                        showClass: {
+                            popup: 'animate__animated animate__shakeX'
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Network Error!',
+                    text: 'An error occurred while deleting the vehicle',
+                    confirmButtonColor: '#dc3545',
+                    showClass: {
+                        popup: 'animate__animated animate__shakeX'
+                    }
+                });
+            });
+        }
+    });
+}
+</script>
+
+
 </body>
 </html>
