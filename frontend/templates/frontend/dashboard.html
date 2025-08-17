@@ -6,6 +6,42 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
+<!-- Custom CSS for offcanvas -->
+<style>
+    .bg-darker {
+        background-color: #1a1d21;
+    }
+    
+    .offcanvas-body pre {
+        font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+        font-size: 13px;
+        white-space: pre-wrap;
+    }
+    
+    .offcanvas.text-bg-dark {
+        background-color: #212529;
+    }
+    
+    .nav-tabs .nav-link {
+        border-color: #495057;
+        background-color: #343a40;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #fff;
+        background-color: #1a1d21;
+        border-color: #495057;
+        border-bottom-color: #1a1d21;
+    }
+    
+    .tab-content {
+        border: 1px solid #495057;
+        border-top: none;
+        border-radius: 0 0 0.25rem 0.25rem;
+        padding: 15px;
+        background-color: #1a1d21;
+    }
+</style>
 <!-- Your existing statistics cards and other content... -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
@@ -294,7 +330,9 @@
                                                 <i class="fas fa-check-circle"></i> SUCCESS
                                             </span>
                                             <button class="btn btn-sm btn-outline-success" 
-                                                    onclick="showResponseModal('{{ data.latra_response|escapejs }}')"
+                                                    data-bs-toggle="offcanvas" 
+                                                    data-bs-target="#detailsOffcanvas{{ data.id }}" 
+                                                    aria-controls="detailsOffcanvas{{ data.id }}"
                                                     title="View Response Details">
                                                 <i class="fas fa-eye"></i>
                                             </button>
@@ -305,7 +343,9 @@
                                                 <i class="fas fa-exclamation-triangle"></i> FAILED
                                             </span>
                                             <button class="btn btn-sm btn-outline-danger"
-                                                    onclick="showResponseModal('{{ data.latra_response|escapejs }}')"
+                                                    data-bs-toggle="offcanvas" 
+                                                    data-bs-target="#detailsOffcanvas{{ data.id }}" 
+                                                    aria-controls="detailsOffcanvas{{ data.id }}"
                                                     title="View Error Details">
                                                 <i class="fas fa-eye"></i>
                                             </button>
@@ -459,6 +499,110 @@ function showResponseModal(responseData) {
 }
 </script>
 
-<!-- Response Modal will be inserted here dynamically -->
+<!-- Offcanvas for each report data -->
+{% for data in reported_data %}
+<div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="detailsOffcanvas{{ data.id }}" aria-labelledby="detailsOffcanvasLabel{{ data.id }}">
+    <div class="offcanvas-header border-bottom border-secondary">
+        <h5 class="offcanvas-title" id="detailsOffcanvasLabel{{ data.id }}">
+            <i class="fas fa-info-circle me-2"></i>Report Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Vehicle & Owner Information Section -->
+        <div class="card bg-dark border border-secondary mb-4">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0">
+                    <i class="fas fa-car me-2"></i>Vehicle Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Registration Number</label>
+                            <div class="fs-5 fw-bold">{{ data.vehicle.registration_number }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">IMEI Number</label>
+                            <div class="fs-5 fw-bold font-monospace">{{ data.vehicle.imei.imei_number }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if data.vehicle.customer %}
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Owner/Customer</label>
+                            <div class="fs-5 fw-bold">{{ data.vehicle.customer.name }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Contact</label>
+                            <div>
+                                <i class="fas fa-envelope me-2"></i>{{ data.vehicle.customer.email|default:"N/A" }}<br>
+                                <i class="fas fa-phone me-2"></i>{{ data.vehicle.customer.phone|default:"N/A" }}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No customer information available
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs for Raw Data, Processed Data, and Response -->
+        <ul class="nav nav-tabs mb-3" id="dataTab{{ data.id }}" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active text-light" id="sent-tab{{ data.id }}" data-bs-toggle="tab" 
+                        data-bs-target="#sent-data{{ data.id }}" type="button" role="tab" aria-selected="true">
+                    <i class="fas fa-paper-plane me-1"></i>Sent to LATRA
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-light" id="processed-tab{{ data.id }}" data-bs-toggle="tab" 
+                        data-bs-target="#processed-data{{ data.id }}" type="button" role="tab" aria-selected="false">
+                    <i class="fas fa-cogs me-1"></i>Processed Data
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link text-light" id="response-tab{{ data.id }}" data-bs-toggle="tab" 
+                        data-bs-target="#response-data{{ data.id }}" type="button" role="tab" aria-selected="false">
+                    <i class="fas fa-reply me-1"></i>LATRA Response
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="dataTabContent{{ data.id }}">
+            <!-- Raw Data Tab -->
+            <div class="tab-pane fade show active" id="sent-data{{ data.id }}" role="tabpanel">
+                <div class="bg-darker p-3 rounded">
+                    <pre class="text-light mb-0" style="overflow-x: auto; max-height: 500px;">{{ data.raw_data }}</pre>
+                </div>
+            </div>
+            
+            <!-- Processed Data Tab -->
+            <div class="tab-pane fade" id="processed-data{{ data.id }}" role="tabpanel">
+                <div class="bg-darker p-3 rounded">
+                    <pre class="text-light mb-0" style="overflow-x: auto; max-height: 500px;">{{ data.processed_data }}</pre>
+                </div>
+            </div>
+            
+            <!-- Response Tab -->
+            <div class="tab-pane fade" id="response-data{{ data.id }}" role="tabpanel">
+                <div class="bg-darker p-3 rounded">
+                    <pre class="text-light mb-0" style="overflow-x: auto; max-height: 500px;">{{ data.latra_response }}</pre>
+                </div>
+                
+                <div class="alert {% if data.is_success %}alert-success{% else %}alert-danger{% endif %} mt-3">
+                    <i class="fas {% if data.is_success %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
+                    Status: <strong>{% if data.is_success %}SUCCESS{% else %}FAILED{% endif %}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 {% endblock %}
