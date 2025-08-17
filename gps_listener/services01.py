@@ -16,13 +16,13 @@ ACTIVITY_CODES = {
     # Default/Common events
     0: "No Event",
     1: "Movement/Logging (Default)",
-   
+    
     # LATRA Standard Activity IDs
     2: "Engine ON",
-    3: "Engine OFF",
+    3: "Engine OFF", 
     4: "Speeding",
     5: "Hash Braking",
-    6: "Hash Turning",
+    6: "Hash Turning", 
     7: "Hash Acceleration",
     8: "Panic Button (Driver)",
     9: "Internal Battery Low",
@@ -35,7 +35,7 @@ ACTIVITY_CODES = {
     16: "Fuel data report",
     17: "Invalid Scan",
     18: "Engine Start",
-    19: "Engine Stop",
+    19: "Engine Stop", 
     20: "Enter Boundary",
     21: "Leave Boundary",
     22: "Enter Checkpoint",
@@ -67,7 +67,7 @@ ACTIVITY_CODES = {
     48: "Collision Detected",
     49: "Rollover Detected",
     50: "Emergency Call",
-   
+    
     # Teltonika Eventual I/O elements (Event IDs) mapped to LATRA activities
     155: "20",  # Geofence zone 01 -> Enter/Leave Boundary
     156: "20",  # Geofence zone 02 -> Enter/Leave Boundary
@@ -90,7 +90,7 @@ ACTIVITY_CODES = {
     97: "20",   # Geofence zone 19 -> Enter/Leave Boundary
     98: "20",   # Geofence zone 20 -> Enter/Leave Boundary
     99: "20",   # Geofence zone 21 -> Enter/Leave Boundary
-   
+    
     250: "18",  # Trip Start -> Engine Start (when state=1) / Trip Stop -> Engine Stop (when state=0)
     251: "11",  # Idling Start/Stop -> Excessive Idle
     252: "9",   # Battery Unplug -> Internal Battery Low
@@ -101,11 +101,11 @@ ACTIVITY_CODES = {
     247: "12",  # Crash Detection -> Accident
     248: "24",  # Immobilizer -> Ibutton Scan (Regular)
     249: "26",  # Jamming -> GPS Signal Lost
-   
+    
     # Permanent I/O based events mapped to LATRA activities
     239: "2",   # Ignition Event -> Engine ON (when state=1) / Engine OFF (when state=0)
     240: "1",   # Movement Event -> Movement/Logging (Default)
-   
+    
     # Additional Teltonika Event IDs mapped to LATRA activities
     175: "20",  # Auto Geofence -> Enter/Leave Boundary
     236: "8",   # Alarm -> Panic Button (Driver)
@@ -114,7 +114,7 @@ ACTIVITY_CODES = {
     318: "26",  # GNSS Jamming -> GPS Signal Lost
     391: "14",  # Private mode -> Device Tempering
     449: "2",   # Ignition On Counter -> Engine ON
-   
+    
     # System events that should generate activities
     1: "1",     # System event 1 -> Movement/Logging
     2: "1",     # System event 2 -> Movement/Logging
@@ -124,14 +124,14 @@ ACTIVITY_CODES = {
     6: "1",     # System event 6 -> Movement/Logging
     7: "1",     # System event 7 -> Movement/Logging
     8: "1",     # System event 8 -> Movement/Logging
-   
+    
     # Power management events - More comprehensive coverage
     113: "9",   # Battery Level (when low) -> Internal Battery Low
     66: "10",   # External Voltage (when low) -> External Power Disconnected
     67: "9",    # Battery Voltage (when low) -> Internal Battery Low
     68: "9",    # Battery Current (monitoring) -> Internal Battery Low
     200: "15",  # Sleep Mode -> Black Box Data Logging
-   
+    
     # GPS/GNSS Status Events
     69: "26",   # GNSS Status (when OFF or no fix) -> GPS Signal Lost
     21: "27",   # GSM Signal (when restored) -> GPS Signal Restored
@@ -139,7 +139,7 @@ ACTIVITY_CODES = {
     206: "15",  # GSM Area Code -> Black Box Data Logging
     241: "15",  # Active GSM Operator -> Black Box Data Logging
     237: "15",  # Network Type -> Black Box Data Logging
-   
+    
     # Digital Input/Output Events
     1: "39",    # Digital Input 1 -> Door Open/Close
     2: "39",    # Digital Input 2 -> Door Open/Close  
@@ -148,14 +148,14 @@ ACTIVITY_CODES = {
     180: "39",  # Digital Output 2 -> Door Open/Close
     380: "39",  # Digital Output 3 -> Door Open/Close
     381: "14",  # Ground Sense -> Device Tempering
-   
+    
     # Fuel and Engine Monitoring
     12: "16",   # Fuel Used GPS -> Fuel data report
     13: "16",   # Fuel Rate GPS -> Fuel data report
     48: "36",   # OBD Fuel Level -> Low Fuel Alert
     84: "36",   # CAN Fuel Level -> Low Fuel Alert
     89: "36",   # CAN Fuel Level % -> Low Fuel Alert
-   
+    
     # Temperature Monitoring
     72: "37",   # Dallas Temperature 1 (high temp) -> High Temperature Alert
     73: "37",   # Dallas Temperature 2 (high temp) -> High Temperature Alert
@@ -163,43 +163,43 @@ ACTIVITY_CODES = {
     75: "37",   # Dallas Temperature 4 (high temp) -> High Temperature Alert
     32: "37",   # OBD Coolant Temperature (high) -> High Temperature Alert
     39: "37",   # OBD Intake Air Temperature (high) -> High Temperature Alert
-   
+    
     # Vehicle Speed and Movement
     24: "4",    # Speed (when over limit) -> Speeding
     37: "4",    # OBD Vehicle Speed (when over limit) -> Speeding
     81: "4",    # CAN Vehicle Speed (when over limit) -> Speeding
     303: "1",   # Instant Movement -> Movement/Logging
-   
+    
     # Accelerometer Events (Harsh Driving)
     17: "7",    # Axis X (harsh acceleration) -> Hash Acceleration
     18: "6",    # Axis Y (harsh turning) -> Hash Turning
     19: "5",    # Axis Z (harsh braking) -> Hash Braking
     383: "15",  # AXL Calibration Status -> Black Box Data Logging
-   
+    
     # Trip and Odometer
     199: "15",  # Trip Odometer -> Black Box Data Logging
     16: "15",   # Total Odometer -> Black Box Data Logging (removed from transmission but tracked)
-   
+    
     # RFID and Access Control
     207: "24",  # RFID -> Ibutton Scan (Regular)
     78: "24",   # iButton -> Ibutton Scan (Regular)
     264: "24",  # Barcode ID -> Ibutton Scan (Regular)
-   
+    
     # Environmental Sensors
     10: "15",   # SD Status -> Black Box Data Logging
     9: "15",    # Analog Input 1 -> Black Box Data Logging
     6: "15",    # Analog Input 2 -> Black Box Data Logging
-   
+    
     # Communication Status
     263: "27",  # BT Status (when connected) -> GPS Signal Restored
     1148: "15", # Connectivity Quality -> Black Box Data Logging
-   
+    
     # Pulse Counters (Activity Monitoring)
     4: "15",    # Pulse Counter Din1 -> Black Box Data Logging
     5: "15",    # Pulse Counter Din2 -> Black Box Data Logging
     622: "15",  # Frequency DIN1 -> Black Box Data Logging
     623: "15",  # Frequency DIN2 -> Black Box Data Logging
-   
+    
     # Extended Sensor Network (EYE Sensors)
     10800: "37", # EYE Temperature 1 (high temp) -> High Temperature Alert
     10801: "37", # EYE Temperature 2 (high temp) -> High Temperature Alert
@@ -213,14 +213,14 @@ ACTIVITY_CODES = {
     10813: "1",  # EYE Movement 2 -> Movement/Logging
     10814: "1",  # EYE Movement 3 -> Movement/Logging
     10815: "1",  # EYE Movement 4 -> Movement/Logging
-   
+    
     # Advanced I/O Elements for Enhanced Detection
     252: "9",   # Unplug (Battery Unplugged) -> Internal Battery Low
     246: "33",  # Towing -> Vehicle Theft
     251: "11",  # Idling -> Excessive Idle
     283: "2",   # Driving State (Ignition ON) -> Engine ON
     284: "15",  # Driving Records -> Black Box Data Logging
-   
+    
     # Driver Card Events
     403: "31",  # Driver Name -> Driver Identification
     404: "31",  # Driver card license type -> Driver Identification
@@ -229,23 +229,23 @@ ACTIVITY_CODES = {
     407: "31",  # Driver card expiration date -> Driver Identification
     408: "31",  # Driver Card place of issue -> Driver Identification
     409: "31",  # Driver Status Event -> Driver Identification
-   
+    
     # OBD Events
     256: "16",  # VIN -> Fuel data report
     30: "34",   # Number of DTC -> Maintenance Alert
     281: "34",  # Fault Codes -> Maintenance Alert
-   
+    
     # CAN Adapter Events
     90: "39",   # Door Status -> Door Open/Close
     235: "34",  # Oil Level -> Maintenance Alert
     160: "34",  # DTC Faults -> Maintenance Alert
-   
+    
     # BLE Sensor Events
     385: "22",  # Beacon -> Enter/Leave Checkpoint
     548: "22",  # Advanced BLE Beacon data -> Enter/Leave Checkpoint
-   
+    
     # COMPREHENSIVE I/O PARAMETER MAPPING - Complete coverage of Teltonika FMB130
-   
+    
     # Extended Power Management (complete coverage)
     65: "10",   # Power Input 2 -> External Power Disconnected
     114: "10",  # LVCAN Power -> External Power Disconnected
@@ -253,7 +253,7 @@ ACTIVITY_CODES = {
     116: "9",   # Battery Voltage (24V) -> Internal Battery Low
     117: "10",  # Backup Battery Voltage -> External Power Disconnected
     118: "10",  # Module Supply Voltage -> External Power Disconnected
-   
+    
     # Enhanced CAN Bus Coverage
     80: "15",   # CAN Engine Hours -> Black Box Data Logging  
     82: "37",   # CAN Engine Temperature -> High Temperature Alert
@@ -273,7 +273,7 @@ ACTIVITY_CODES = {
     98: "37",   # CAN Engine Coolant Temperature -> High Temperature Alert
     99: "15",   # CAN Brake Application Pressure -> Black Box Data Logging
     100: "15",  # CAN Engine Retarder -> Black Box Data Logging
-   
+    
     # Complete OBD-II Parameter Coverage
     30: "15",   # OBD Engine RPM -> Black Box Data Logging
     31: "15",   # OBD Engine Load -> Black Box Data Logging
@@ -299,7 +299,7 @@ ACTIVITY_CODES = {
     55: "34",   # OBD Distance traveled since codes cleared -> Maintenance Alert
     56: "15",   # OBD Evap System Vapor Pressure -> Black Box Data Logging
     57: "15",   # OBD Absolute Barometric Pressure -> Black Box Data Logging
-   
+    
     # Extended Fuel Level System (complete 201-215 range)
     201: "16",  # Fuel Level 1 -> Fuel data report
     202: "16",  # Fuel Level 2 -> Fuel data report
@@ -314,8 +314,8 @@ ACTIVITY_CODES = {
     213: "16",  # Fuel Density -> Fuel data report
     214: "16",  # Fuel Flow Rate -> Fuel data report
     215: "16",  # Fuel Economy -> Fuel data report
-   
-    # Complete Driver Identification System (400-409 range)
+    
+    # Complete Driver Identification System (400-409 range) 
     400: "24",  # Driver Card 1 -> Ibutton Scan (Regular)
     401: "24",  # Driver Card 2 -> Ibutton Scan (Regular)
     402: "24",  # Driver Card 3 -> Ibutton Scan (Regular)
@@ -326,14 +326,7 @@ ACTIVITY_CODES = {
     407: "24",  # Driver 5 ID -> Ibutton Scan (Regular)
     408: "17",  # Unknown Driver -> Invalid Scan
     409: "17",  # Driving without Card -> Invalid Scan
-   
-    # Additional iButton and RFID elements
-    245: "24",  # Driver Identification -> Ibutton Scan (Regular)
-    78: "24",   # iButton ID -> Ibutton Scan (Regular)  
-    207: "24",  # RFID Tag -> Ibutton Scan (Regular)
-    264: "24",  # Barcode ID -> Ibutton Scan (Regular)
-    100: "24",  # Magnetic Card ID -> Ibutton Scan (Regular)
-   
+    
     # Complete Geofence Zone Coverage (155-231 comprehensive)
     161: "20",  # Geofence Zone 04 Enter -> Enter Boundary
     162: "21",  # Geofence Zone 04 Exit -> Leave Boundary
@@ -360,7 +353,7 @@ ACTIVITY_CODES = {
     183: "21",  # Geofence Zone 14 Exit -> Leave Boundary
     184: "20",  # Geofence Zone 15 Enter -> Enter Boundary
     185: "21",  # Geofence Zone 15 Exit -> Leave Boundary
-   
+    
     # Advanced Sensor Network (Environmental)
     76: "15",   # Dallas ID 1 -> Black Box Data Logging
     77: "15",   # Dallas ID 2 -> Black Box Data Logging
@@ -370,7 +363,7 @@ ACTIVITY_CODES = {
     102: "37",  # Temperature 2 -> High Temperature Alert  
     103: "37",  # Temperature 3 -> High Temperature Alert
     104: "37",  # Temperature 4 -> High Temperature Alert
-   
+    
     # Complete Wireless Sensor Network (WSN) Coverage
     10500: "37", # WSN Temperature 1 -> High Temperature Alert
     10501: "37", # WSN Temperature 2 -> High Temperature Alert
@@ -388,7 +381,7 @@ ACTIVITY_CODES = {
     10521: "39", # WSN Door Sensor 2 -> Door Open/Close
     10522: "39", # WSN Door Sensor 3 -> Door Open/Close
     10523: "39", # WSN Door Sensor 4 -> Door Open/Close
-   
+    
     # Complete EYE Sensor Coverage (IoT sensors)
     10800: "37", # EYE Temperature 1 -> High Temperature Alert
     10801: "37", # EYE Temperature 2 -> High Temperature Alert
@@ -408,7 +401,7 @@ ACTIVITY_CODES = {
     10831: "1",  # EYE Movement 2 -> Movement/Logging
     10832: "1",  # EYE Movement 3 -> Movement/Logging
     10833: "1",  # EYE Movement 4 -> Movement/Logging
-   
+    
     # Advanced Telemetry Parameters
     11: "15",   # HDOP -> Black Box Data Logging
     14: "15",   # External Voltage Backup -> Black Box Data Logging
@@ -421,7 +414,7 @@ ACTIVITY_CODES = {
     27: "15",   # Movement Status (detailed) -> Black Box Data Logging
     28: "15",   # Datamode Status -> Black Box Data Logging
     29: "15",   # GSM Registration Status -> Black Box Data Logging
-   
+    
     # Extended Digital I/O Coverage
     379: "39",  # Digital Input 4 -> Door Open/Close
     380: "39",  # Digital Output 3 -> Door Open/Close
@@ -431,14 +424,14 @@ ACTIVITY_CODES = {
     384: "15",  # AXL X Axis -> Black Box Data Logging
     385: "15",  # AXL Y Axis -> Black Box Data Logging
     386: "15",  # AXL Z Axis -> Black Box Data Logging
-   
+    
     # Complete Vehicle Parameter Coverage  
     600: "15",  # PCB Temperature -> Black Box Data Logging
     601: "37",  # Module Temperature -> High Temperature Alert
     602: "15",  # Humidity -> Black Box Data Logging
     603: "15",  # Pressure -> Black Box Data Logging
     604: "15",  # Luminosity -> Black Box Data Logging
-   
+    
     # Advanced Event Detection
     1000: "33", # Vehicle Theft Detection -> Vehicle Theft
     1001: "12", # Collision Detection Advanced -> Accident
@@ -471,7 +464,7 @@ class GPSListener:
         self.cache_timeout = 300  # 5 minutes cache timeout
         self.last_cache_clean = time.time()
         self.mgs_id_counter = 10000  # Starting counter for dynamic MGS_ID
-       
+        
         # IMEI Filter Configuration
         # self.allowed_imeis = set()  # Set of allowed IMEIs
         # self.filter_enabled = False  # Enable/disable IMEI filtering
@@ -489,10 +482,10 @@ class GPSListener:
                     conn, addr = s.accept()
                     conn.settimeout(30)  # Set timeout for connection
                     print(f"Connection from {addr}")
-                   
+                    
                     # Handle connection in a separate thread
                     self.executor.submit(self.handle_connection, conn, addr)
-                   
+                    
                 except Exception as e:
                     print(f"Error accepting connection: {e}")
                     time.sleep(1)  # Prevent tight loop on errors
@@ -506,7 +499,7 @@ class GPSListener:
                     break
 
                 hex_data = data.hex()
-               
+                
                 # Check if this is an IMEI packet
                 if self.imei_checker(hex_data):
                     device_imei = self.ascii_imei_converter(hex_data)
@@ -520,18 +513,18 @@ class GPSListener:
                         try:
                             # Parse the data
                             parsed_data = self.codec_8e_parser(hex_data, device_imei)
-                           
+                            
                             # Process asynchronously to not block the connection
                             self.executor.submit(
-                                self.process_parsed_data,
-                                device_imei,
-                                hex_data,
+                                self.process_parsed_data, 
+                                device_imei, 
+                                hex_data, 
                                 parsed_data
                             )
-                           
+                            
                             # Send response to device immediately
                             conn.sendall((len(parsed_data['records'])).to_bytes(4, byteorder="big"))
-                           
+                            
                         except Exception as e:
                             print(f"Error parsing data: {e}")
                             break
@@ -551,7 +544,7 @@ class GPSListener:
             if time.time() - self.last_cache_clean > self.cache_timeout:
                 self.clean_vehicle_cache()
                 self.last_cache_clean = time.time()
-           
+            
             # Get vehicle from cache or database
             vehicle = self.get_cached_vehicle(device_imei)
             if not vehicle:
@@ -566,16 +559,16 @@ class GPSListener:
                 vehicle.name = device_imei[-6:]  # Use last 6 digits of IMEI without prefix
                 vehicle.registration_number = device_imei[-6:]  # Use last 6 digits as registration
                 print(f"🚀 SENDING TO LATRA with temporary vehicle profile: {vehicle.name}")
-           
+            
             # Send to LATRA (ALWAYS send regardless of vehicle registration)
             success, response = self.send_to_latra(vehicle, parsed_data)
-           
+            
             # Save to database only if vehicle exists in database
             if hasattr(vehicle, '_state'):  # Check if it's a real Django model instance
                 self.save_reported_data(vehicle, hex_data, parsed_data, response, success)
             else:
                 print(f"📝 Skipping database save for unregistered vehicle {device_imei} - LATRA transmission completed")
-           
+            
         except Exception as e:
             print(f"Error processing data: {e}")
         finally:
@@ -585,13 +578,13 @@ class GPSListener:
     def get_cached_vehicle(self, imei):
         """Get vehicle from cache or database with cache invalidation"""
         now = time.time()
-       
+        
         # Check cache first
         if imei in self.vehicle_cache:
             vehicle, timestamp = self.vehicle_cache[imei]
             if now - timestamp < self.cache_timeout:
                 return vehicle
-       
+        
         # Not in cache or expired, query database
         vehicle = Vehicle.objects.filter(imei__imei_number=imei).first()
         if vehicle:
@@ -601,7 +594,7 @@ class GPSListener:
     def clean_vehicle_cache(self):
         """Clean expired cache entries"""
         now = time.time()
-        expired = [k for k, (_, t) in self.vehicle_cache.items()
+        expired = [k for k, (_, t) in self.vehicle_cache.items() 
                   if now - t > self.cache_timeout]
         for k in expired:
             del self.vehicle_cache[k]
@@ -624,7 +617,7 @@ class GPSListener:
         try:
             if len(hex_imei) < 4:
                 return False
-               
+                
             imei_length = int(hex_imei[:4], 16)
             actual_length = len(hex_imei[4:]) // 2
             return imei_length == actual_length
@@ -643,7 +636,7 @@ class GPSListener:
         try:
             if len(codec8_packet) < 18:
                 return False
-           
+            
             codec_type = codec8_packet[16:18]
             return codec_type.upper() in ["8E", "08"]
         except Exception:
@@ -673,7 +666,7 @@ class GPSListener:
 
             # Number of records (1 byte after codec type)
             number_of_records = self.safe_hex_to_int(codec8_packet[18:20])
-           
+            
             # Start parsing records (skip first 10 bytes of header)
             avl_data_start = codec8_packet[20:]
             data_field_position = 0
@@ -728,11 +721,11 @@ class GPSListener:
                     speed = avl_data_start[data_field_position:data_field_position+4]
                     parsed_speed = self.safe_hex_to_int(speed)
                     record["speed"] = parsed_speed
-                   
+                    
                     # Debug: Print speed information
                     if parsed_speed > 0:
                         print(f"DEBUG: Speed detected - Raw hex: {speed}, Parsed: {parsed_speed} km/h")
-                   
+                    
                     data_field_position += 4
 
                     # Event IO ID (1 or 2 bytes)
@@ -759,7 +752,7 @@ class GPSListener:
                             data_field_position += data_step
                             value = avl_data_start[data_field_position:data_field_position+2]
                             io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                self.safe_hex_to_int(key),
+                                self.safe_hex_to_int(key), 
                                 value
                             )
                             data_field_position += 2
@@ -778,7 +771,7 @@ class GPSListener:
                             data_field_position += data_step
                             value = avl_data_start[data_field_position:data_field_position+4]
                             io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                self.safe_hex_to_int(key),
+                                self.safe_hex_to_int(key), 
                                 value
                             )
                             data_field_position += 4
@@ -797,7 +790,7 @@ class GPSListener:
                             data_field_position += data_step
                             value = avl_data_start[data_field_position:data_field_position+8]
                             io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                self.safe_hex_to_int(key),
+                                self.safe_hex_to_int(key), 
                                 value
                             )
                             data_field_position += 8
@@ -816,7 +809,7 @@ class GPSListener:
                             data_field_position += data_step
                             value = avl_data_start[data_field_position:data_field_position+16]
                             io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                self.safe_hex_to_int(key),
+                                self.safe_hex_to_int(key), 
                                 value
                             )
                             data_field_position += 16
@@ -838,7 +831,7 @@ class GPSListener:
                                 data_field_position += 4
                                 value = avl_data_start[data_field_position:data_field_position+(2 * self.safe_hex_to_int(value_length))]
                                 io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                    self.safe_hex_to_int(key),
+                                    self.safe_hex_to_int(key), 
                                     value
                                 )
                                 data_field_position += len(value)
@@ -869,7 +862,7 @@ class GPSListener:
                     # Check for activity code and event ID - Priority: Event ID > I/O Elements
                     detected_activity = None
                     latra_activity_id = None
-                   
+                    
                     # Primary: Check Event ID field (most reliable source)
                     if event_id and event_id != 0:
                         # Map Teltonika Event ID to LATRA Activity ID
@@ -885,12 +878,12 @@ class GPSListener:
                             else:
                                 detected_activity = event_id if event_id <= 50 else 1  # Use event ID if valid LATRA range
                                 event_activity_name = ACTIVITY_CODES.get(event_id, f"Event ID {event_id}")
-                       
+                        
                         print(f"🔥 EVENT ID DETECTED: {event_id} (0x{event_id:02X}) -> LATRA Activity: {detected_activity} ({event_activity_name})")
                         record["activity"] = f"{detected_activity} - {event_activity_name} (Event ID)"
                         # Display activity-specific data for Event ID based activities
                         self.display_activity_specific_data(detected_activity, record)
-                   
+                    
                     # Secondary: Check I/O element 240 (Movement) if no Event ID
                     elif 240 in io_elements:
                         movement_state = io_elements[240]
@@ -902,7 +895,7 @@ class GPSListener:
                             detected_activity = 1  # LATRA Activity ID 1 (Movement/Logging)
                             record["activity"] = "1 - Movement/Logging (I/O 240 Movement OFF)"
                             print(f"🛑 MOVEMENT DETECTED via I/O 240: Movement OFF (State: {movement_state}) -> LATRA Activity 1")
-                   
+                    
                     # Tertiary: Check I/O element 239 (Ignition) if no Event ID or Movement
                     elif 239 in io_elements:
                         ignition_state = io_elements[239]
@@ -914,7 +907,7 @@ class GPSListener:
                             detected_activity = 3  # LATRA Activity ID 3 (Engine OFF)
                             record["activity"] = "3 - Engine OFF (I/O 239 Ignition OFF)"
                             print(f"🔑 IGNITION DETECTED via I/O 239: Ignition OFF (State: {ignition_state}) -> LATRA Activity 3")
-                   
+                    
                     # COMPREHENSIVE I/O ELEMENT DETECTION - Check all I/O elements for activities
                     if not detected_activity:
                         # Check for speeding (Speed field or Event ID 255)
@@ -927,7 +920,7 @@ class GPSListener:
                                 print(f"🏎️ SPEEDING DETECTED: {speed_value} km/h -> LATRA Activity 4")
                         except (ValueError, TypeError):
                             print(f"DEBUG: Invalid speed value: {speed_value}, skipping speeding check")
-                       
+                        
                         # ENHANCED I/O ELEMENT MAPPING - Use the comprehensive ACTIVITY_CODES mapping
                         if not detected_activity:
                             # Sort I/O elements by priority (critical events first)
@@ -941,39 +934,25 @@ class GPSListener:
                                 (255, "4", "Over Speeding -> Speeding"),
                                 (8, "8", "Panic Button -> Panic Button (Driver)"),
                                 (318, "26", "GNSS Jamming -> GPS Signal Lost"),
-                               
-                                # Driver identification events (high priority for iButton scanning)
-                                (78, "24", "iButton -> Ibutton Scan (Regular)"),
-                                (245, "24", "Driver ID -> Ibutton Scan (Regular)"),
-                                (403, "24", "Driver 1 ID -> Ibutton Scan (Regular)"),
-                                (404, "24", "Driver 2 ID -> Ibutton Scan (Regular)"),
-                                (405, "24", "Driver 3 ID -> Ibutton Scan (Regular)"),
-                                (406, "24", "Driver 4 ID -> Ibutton Scan (Regular)"),
-                                (407, "24", "Driver 5 ID -> Ibutton Scan (Regular)"),
-                                (408, "17", "Unknown Driver -> Invalid Scan"),
-                                (409, "17", "Driving without Card -> Invalid Scan"),
-                                (207, "24", "RFID Tag -> Ibutton Scan (Regular)"),
-                                (264, "24", "Barcode ID -> Ibutton Scan (Regular)"),
-                                (100, "24", "Magnetic Card ID -> Ibutton Scan (Regular)"),
-                               
+                                
                                 # Power management events
                                 (67, "9", "Battery Voltage -> Internal Battery Low"),
                                 (66, "10", "External Voltage -> External Power Disconnected"),
                                 (65, "10", "Power Input 2 -> External Power Disconnected"),
                                 (113, "9", "Battery Level -> Internal Battery Low"),
                                 (114, "10", "LVCAN Power -> External Power Disconnected"),
-                               
+                                
                                 # Trip and driving events
                                 (250, "18", "Trip Start/Stop -> Engine Start/Stop"),
                                 (251, "11", "Idling -> Excessive Idle"),
-                               
+                                
                                 # Temperature monitoring
                                 (72, "37", "Dallas Temperature 1 -> High Temperature Alert"),
                                 (73, "37", "Dallas Temperature 2 -> High Temperature Alert"),
                                 (74, "37", "Dallas Temperature 3 -> High Temperature Alert"),
                                 (75, "37", "Dallas Temperature 4 -> High Temperature Alert"),
                                 (32, "37", "OBD Coolant Temperature -> High Temperature Alert"),
-                               
+                                
                                 # Fuel monitoring
                                 (201, "16", "Fuel Level 1 -> Fuel data report"),
                                 (202, "16", "Fuel Level 2 -> Fuel data report"),
@@ -982,26 +961,34 @@ class GPSListener:
                                 (211, "36", "Fuel Level Warning -> Low Fuel Alert"),
                                 (84, "36", "CAN Fuel Level -> Low Fuel Alert"),
                                 (89, "36", "CAN Fuel Level % -> Low Fuel Alert"),
-                               
+                                
+                                # Driver identification
+                                (78, "24", "iButton -> Ibutton Scan (Regular)"),
+                                (403, "24", "Driver 1 ID -> Ibutton Scan (Regular)"),
+                                (404, "24", "Driver 2 ID -> Ibutton Scan (Regular)"),
+                                (405, "24", "Driver 3 ID -> Ibutton Scan (Regular)"),
+                                (408, "17", "Unknown Driver -> Invalid Scan"),
+                                (409, "17", "Driving without Card -> Invalid Scan"),
+                                
                                 # Geofence events (sample - full list too long for inline)
                                 (155, "20", "Geofence Zone 01 -> Enter Boundary"),
                                 (156, "21", "Geofence Zone 01 Exit -> Leave Boundary"),
                                 (157, "20", "Geofence Zone 02 -> Enter Boundary"),
                                 (158, "21", "Geofence Zone 02 Exit -> Leave Boundary"),
-                               
+                                
                                 # Digital I/O
                                 (1, "39", "Digital Input 1 -> Door Open/Close"),
                                 (2, "39", "Digital Input 2 -> Door Open/Close"),
                                 (3, "39", "Digital Input 3 -> Door Open/Close"),
                                 (381, "14", "Ground Sense -> Device Tempering"),
-                               
+                                
                                 # Environmental sensors
                                 (10800, "37", "EYE Temperature 1 -> High Temperature Alert"),
                                 (10820, "9", "EYE Low Battery 1 -> Internal Battery Low"),
                                 (10500, "37", "WSN Temperature 1 -> High Temperature Alert"),
                                 (10510, "9", "WSN Battery Level 1 -> Internal Battery Low"),
                             ]
-                           
+                            
                             # Check each I/O element present against the priority list
                             for io_id in io_elements:
                                 if io_id in ACTIVITY_CODES:
@@ -1009,13 +996,13 @@ class GPSListener:
                                     if isinstance(latra_activity, str) and latra_activity.isdigit():
                                         io_value = io_elements[io_id]
                                         detected_activity = int(latra_activity)
-                                       
+                                        
                                         # Special handling for specific I/O elements
                                         activity_description = self.get_io_activity_description(io_id, io_value, detected_activity)
                                         record["activity"] = f"{detected_activity} - {activity_description}"
                                         print(f"🔌 I/O ELEMENT {io_id} DETECTED: Value={io_value} -> LATRA Activity {detected_activity} ({activity_description})")
                                         break  # Take first match (priority order)
-                       
+                        
                         # Check for low internal battery (I/O 67 - Battery Voltage)
                         if not detected_activity and 67 in io_elements:
                             battery_voltage = io_elements[67]
@@ -1030,9 +1017,9 @@ class GPSListener:
                                         voltage = float(battery_voltage) / 100.0
                                     else:
                                         voltage = float(battery_voltage)  # Already in V
-                                   
+                                    
                                     print(f"🔋 BATTERY VOLTAGE CHECK: Raw={battery_voltage}, Converted={voltage:.2f}V")
-                                   
+                                    
                                     # More lenient battery check - even moderate drops are concerning
                                     if voltage > 0 and voltage < 12.0:  # Less than 12V is worth reporting
                                         detected_activity = 9  # LATRA Activity ID 9 (Internal Battery Low)
@@ -1049,14 +1036,14 @@ class GPSListener:
                                     detected_activity = 9
                                     record["activity"] = f"9 - Internal Battery Low (Unparseable: {battery_voltage})"
                                     print(f"🔋 UNPARSEABLE BATTERY VALUE -> LATRA Activity 9")
-                                   
+                                    
                             except (ValueError, TypeError) as e:
                                 print(f"DEBUG: Error parsing battery voltage {battery_voltage}: {e}")
                                 # Still report as battery event if I/O 67 is present
                                 detected_activity = 9
                                 record["activity"] = f"9 - Internal Battery Low (Parse Error: {battery_voltage})"
                                 print(f"🔋 BATTERY PARSE ERROR -> LATRA Activity 9")
-                       
+                        
                         # Check for external power disconnection (I/O 66 - External Voltage)
                         if not detected_activity and 66 in io_elements:
                             ext_voltage = io_elements[66]
@@ -1069,9 +1056,9 @@ class GPSListener:
                                         voltage = float(ext_voltage) / 100.0
                                     else:
                                         voltage = float(ext_voltage)  # Already in V
-                                   
+                                    
                                     print(f"🔌 EXTERNAL VOLTAGE CHECK: Raw={ext_voltage}, Converted={voltage:.2f}V")
-                                   
+                                    
                                     # External power disconnection check
                                     if voltage == 0 or (voltage > 0 and voltage < 9.0):  # Less than 9V or 0V
                                         detected_activity = 10  # LATRA Activity ID 10 (External Power Disconnected)
@@ -1083,14 +1070,14 @@ class GPSListener:
                                     detected_activity = 10
                                     record["activity"] = f"10 - External Power Disconnected (Unparseable: {ext_voltage})"
                                     print(f"🔌 UNPARSEABLE EXTERNAL VOLTAGE -> LATRA Activity 10")
-                                   
+                                    
                             except (ValueError, TypeError) as e:
                                 print(f"DEBUG: Error parsing external voltage {ext_voltage}: {e}")
                                 # Still report as power disconnect event if I/O 66 is present
                                 detected_activity = 10
                                 record["activity"] = f"10 - External Power Disconnected (Parse Error: {ext_voltage})"
                                 print(f"🔌 EXTERNAL POWER PARSE ERROR -> LATRA Activity 10")
-                       
+                        
                         # Check for trip events (I/O 250 - Trip)
                         if not detected_activity and 250 in io_elements:
                             trip_state = io_elements[250]
@@ -1102,36 +1089,19 @@ class GPSListener:
                                 detected_activity = 19  # LATRA Activity ID 19 (Engine Stop)
                                 record["activity"] = "19 - Engine Stop (Trip Stop)"
                                 print(f"🛑 TRIP STOP DETECTED (I/O 250=0) -> LATRA Activity 19")
-                       
-                        # Check for driver identification (I/O 78 - iButton or I/O 245 - Driver ID)
-                        if not detected_activity and (78 in io_elements or 245 in io_elements):
-                            # Check I/O 78 (iButton) first
-                            if 78 in io_elements:
-                                ibutton_id = io_elements[78]
-                                if ibutton_id and str(ibutton_id) != "0" and str(ibutton_id) != "0x0000000000000000":
-                                    detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
-                                    record["activity"] = f"24 - Ibutton Scan (Regular) - iButton ID: {ibutton_id}"
-                                    print(f"👤 IBUTTON SCANNED (I/O 78): {ibutton_id} -> LATRA Activity 24")
-                                else:
-                                    detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
-                                    record["activity"] = "17 - Invalid Scan (No iButton ID)"
-                                    print(f"❌ INVALID IBUTTON SCAN (I/O 78) -> LATRA Activity 17")
-                           
-                            # Check I/O 245 (Driver ID) if no I/O 78 or if I/O 78 was invalid
-                            elif 245 in io_elements:
-                                driver_id = io_elements[245]
-                                # Check if it's a valid driver ID (not empty, not all zeros, not FFFFFFFF)
-                                if (driver_id and str(driver_id) != "0" and
-                                    str(driver_id) != "0x0000000000000000" and
-                                    str(driver_id).upper() != "FFFFFFFFFFFFFFFF"):
-                                    detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
-                                    record["activity"] = f"24 - Ibutton Scan (Regular) - Driver ID: {driver_id}"
-                                    print(f"👤 DRIVER ID SCANNED (I/O 245): {driver_id} -> LATRA Activity 24")
-                                else:
-                                    detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
-                                    record["activity"] = "17 - Invalid Scan (No Driver ID)"
-                                    print(f"❌ INVALID DRIVER ID SCAN (I/O 245) -> LATRA Activity 17")
-                       
+                        
+                        # Check for driver identification (I/O 78 - iButton)
+                        if not detected_activity and 78 in io_elements:
+                            ibutton_id = io_elements[78]
+                            if ibutton_id and str(ibutton_id) != "0" and str(ibutton_id) != "0x0000000000000000":
+                                detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
+                                record["activity"] = f"24 - Ibutton Scan (Regular) - ID: {ibutton_id}"
+                                print(f"👤 IBUTTON DETECTED: {ibutton_id} -> LATRA Activity 24")
+                            else:
+                                detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
+                                record["activity"] = "17 - Invalid Scan (No iButton)"
+                                print(f"❌ INVALID IBUTTON SCAN -> LATRA Activity 17")
+                        
                         # Check for panic button (I/O 200 - can be panic/emergency)
                         if not detected_activity and 200 in io_elements:
                             panic_state = io_elements[200]
@@ -1139,7 +1109,7 @@ class GPSListener:
                                 detected_activity = 8  # LATRA Activity ID 8 (Panic Button Driver)
                                 record["activity"] = "8 - Panic Button (Driver)"
                                 print(f"🆘 PANIC BUTTON DETECTED (I/O 200=1) -> LATRA Activity 8")
-                       
+                        
                         # Check for jamming (I/O elements or specific conditions)
                         if not detected_activity:
                             # GPS Signal quality check
@@ -1148,22 +1118,22 @@ class GPSListener:
                                 detected_activity = 26  # LATRA Activity ID 26 (GPS Signal Lost)
                                 record["activity"] = "26 - GPS Signal Lost"
                                 print(f"📡 GPS SIGNAL LOST DETECTED -> LATRA Activity 26")
-                       
+                        
                         # Default fallback - if we have ANY GPS data or I/O elements, use Movement/Logging
                         if not detected_activity:
                             # More inclusive fallback - ANY record should generate an activity
-                            if (record.get("latitude", 0) != 0 or record.get("longitude", 0) != 0 or
+                            if (record.get("latitude", 0) != 0 or record.get("longitude", 0) != 0 or 
                                 len(io_elements) > 0 or record.get("speed", 0) > 0):
                                 detected_activity = 1  # LATRA Activity ID 1 (Movement/Logging Default)
                                 record["activity"] = "1 - Movement/Logging (Default Data)"
                                 print(f"📊 DEFAULT ACTIVITY for data record -> LATRA Activity 1 (Movement/Logging)")
-                           
+                            
                             # Even if no GPS or I/O data, still send as basic logging event
                             elif not detected_activity:
                                 detected_activity = 15  # LATRA Activity ID 15 (Black Box Data Logging)
                                 record["activity"] = "15 - Black Box Data Logging"
                                 print(f"📋 BLACK BOX LOGGING (minimal data) -> LATRA Activity 15")
-                   
+                    
                     # Log final activity detection result
                     if detected_activity:
                         latra_activity_name = ""
@@ -1178,7 +1148,7 @@ class GPSListener:
                                 20: "Enter Boundary", 21: "Leave Boundary", 22: "Enter Checkpoint",
                                 23: "Leave Checkpoint", 24: "Ibutton Scan (Regular)"
                             }.get(detected_activity, f"Activity {detected_activity}")
-                       
+                        
                         print(f"✅ FINAL LATRA ACTIVITY ID: {detected_activity} - {latra_activity_name}")
                         print(f"📊 ACTIVITY SOURCE BREAKDOWN:")
                         print(f"   - Event ID: {event_id} (0x{event_id:02X})")
@@ -1194,16 +1164,16 @@ class GPSListener:
                         print(f"   - I/O 239 (Ignition): {io_elements.get(239, 'N/A')}")
                         print(f"   - Available I/O Elements: {list(io_elements.keys())}")
                         print(f"⚠️ RECORD WILL BE SKIPPED FOR LATRA TRANSMISSION")
-                   
+                    
                     # Store the LATRA activity ID for later use - ENSURE ALWAYS SET
                     if detected_activity is None:
                         # Ultimate failsafe - ALWAYS assign an activity ID
                         detected_activity = 1  # Default to Movement/Logging
                         record["activity"] = "1 - Movement/Logging (Ultimate Failsafe)"
                         print(f"🔄 ULTIMATE FAILSAFE: Assigning Activity ID 1 (Movement/Logging)")
-                   
+                    
                     record["latra_activity_id"] = detected_activity
-                   
+                    
                     # GUARANTEE: Every record will now have a LATRA activity ID
                     print(f"🎯 GUARANTEED ACTIVITY ID: {detected_activity} for transmission to LATRA")
 
@@ -1224,12 +1194,12 @@ class GPSListener:
             activity_desc = record.get('activity', 'No activity')
             event_id = record.get('event_id', 0)
             print(f"   📄 Record {i+1}: Activity ID {activity_id} - {activity_desc} (Event ID: {event_id})")
-       
+        
         if result.get("parse_errors"):
             print(f"   ❌ Parse Errors: {len(result['parse_errors'])}")
             for error in result["parse_errors"]:
                 print(f"      - {error}")
-       
+        
         print(f"🎯 ALL RECORDS WILL BE SENT TO LATRA (No filtering by activity)\n")
 
         return result
@@ -1240,14 +1210,14 @@ class GPSListener:
             if not hex_coordinate or hex_coordinate == "00000000":
                 print(f"DEBUG: Empty or zero coordinate hex: {hex_coordinate}")
                 return 0.0
-               
+                
             coordinate = self.safe_hex_to_int(hex_coordinate)
             print(f"DEBUG: Raw coordinate int: {coordinate}")
-           
+            
             if coordinate == 0:
                 print(f"DEBUG: Zero coordinate detected")
                 return 0.0
-               
+                
             if coordinate & (1 << 31):
                 new_int = coordinate - 2 ** 32
                 dec_coordinate = new_int / 1e7
@@ -1290,7 +1260,7 @@ class GPSListener:
 
     def get_io_activity_description(self, io_id, io_value, latra_activity_id):
         """Generate detailed activity description for I/O elements"""
-       
+        
         # Special handling for specific I/O elements
         if io_id == 250:  # Trip Start/Stop
             if io_value == 1:
@@ -1299,7 +1269,7 @@ class GPSListener:
                 return "Engine Stop (Trip Stop)"
             else:
                 return f"Trip Event (Value: {io_value})"
-               
+                
         elif io_id == 239:  # Ignition
             if io_value == 1:
                 return "Engine ON (Ignition)"
@@ -1307,7 +1277,7 @@ class GPSListener:
                 return "Engine OFF (Ignition)"
             else:
                 return f"Ignition Event (Value: {io_value})"
-               
+                
         elif io_id == 240:  # Movement
             if io_value == 1:
                 return "Movement/Logging (Movement ON)"
@@ -1315,56 +1285,56 @@ class GPSListener:
                 return "Movement/Logging (Movement STOP)"
             else:
                 return f"Movement Event (Value: {io_value})"
-               
+                
         elif io_id in [67, 113]:  # Battery voltage/level
             return f"Internal Battery Low (Battery: {io_value})"
-           
+            
         elif io_id in [66, 65, 114]:  # External power
             return f"External Power Disconnected (Voltage: {io_value})"
-           
+            
         elif io_id in [72, 73, 74, 75, 32, 39]:  # Temperature sensors
             return f"High Temperature Alert (Temp: {io_value})"
-           
+            
         elif io_id in [201, 202, 203, 204, 207, 208, 209, 210, 212, 213, 214, 215]:  # Fuel data
             return f"Fuel data report (Fuel: {io_value})"
-           
+            
         elif io_id in [211, 84, 89]:  # Low fuel
             return f"Low Fuel Alert (Fuel Level: {io_value})"
-           
+            
         elif io_id in [78, 403, 404, 405, 406, 407]:  # Driver ID
             return f"Ibutton Scan (Regular) (Driver ID: {io_value})"
-           
+            
         elif io_id in [408, 409]:  # Invalid driver
             return f"Invalid Scan (Driver Issue: {io_value})"
-           
+            
         elif io_id in range(155, 232):  # Geofence zones
             zone_num = ((io_id - 155) // 2) + 1
             if io_id % 2 == 1:  # Odd = Enter
                 return f"Enter Boundary (Zone {zone_num}: {io_value})"
             else:  # Even = Exit
                 return f"Leave Boundary (Zone {zone_num}: {io_value})"
-               
+                
         elif io_id in [1, 2, 3, 379]:  # Digital inputs
             return f"Door Open/Close (Input {io_id}: {io_value})"
-           
+            
         elif io_id in [179, 180, 380]:  # Digital outputs
             return f"Door Open/Close (Output {io_id}: {io_value})"
-           
+            
         elif io_id == 381:  # Ground sense
             return f"Device Tempering (Ground Sense: {io_value})"
-           
+            
         elif io_id in [252]:  # Battery unplug
             return f"Internal Battery Low (Battery Unplugged: {io_value})"
-           
+            
         elif io_id == 246:  # Towing
             return f"Vehicle Theft (Towing Detected: {io_value})"
-           
+            
         elif io_id == 247:  # Crash
             return f"Accident (Crash Detection: {io_value})"
-           
+            
         elif io_id == 255:  # Over speeding
             return f"Speeding (Over Speed Event: {io_value})"
-           
+            
         elif io_id in [253, 17, 18, 19]:  # Accelerometer
             if io_id == 253 or io_id == 19:
                 return f"Hash Braking (Z-Axis: {io_value})"
@@ -1372,13 +1342,13 @@ class GPSListener:
                 return f"Hash Acceleration (X-Axis: {io_value})"
             elif io_id == 18:
                 return f"Hash Turning (Y-Axis: {io_value})"
-               
+                
         elif io_id in [318, 249]:  # Jamming
             return f"GPS Signal Lost (Jamming: {io_value})"
-           
+            
         elif io_id == 251:  # Idling
             return f"Excessive Idle (Idling: {io_value})"
-           
+            
         elif io_id >= 10800 and io_id <= 10833:  # EYE sensors
             if io_id <= 10805:
                 return f"High Temperature Alert (EYE Temp {io_id-10799}: {io_value})"
@@ -1388,7 +1358,7 @@ class GPSListener:
                 return f"Movement/Logging (EYE Movement {io_id-10829}: {io_value})"
             else:
                 return f"EYE Sensor Event (ID {io_id}: {io_value})"
-               
+                
         elif io_id >= 10500 and io_id <= 10523:  # WSN sensors
             if io_id <= 10505:
                 return f"High Temperature Alert (WSN Temp {io_id-10499}: {io_value})"
@@ -1398,7 +1368,7 @@ class GPSListener:
                 return f"Door Open/Close (WSN Door {io_id-10519}: {io_value})"
             else:
                 return f"WSN Sensor Event (ID {io_id}: {io_value})"
-       
+        
         # OBD-II parameters
         elif io_id >= 30 and io_id <= 57:
             if io_id in [30, 31, 40, 42, 43, 47, 49]:
@@ -1413,7 +1383,7 @@ class GPSListener:
                 return f"Internal Battery Low (OBD Voltage: {io_value})"
             else:
                 return f"OBD Parameter (ID {io_id}: {io_value})"
-       
+        
         # CAN Bus parameters
         elif io_id >= 80 and io_id <= 100:
             if io_id in [80, 86, 87, 88, 91, 95, 96, 97, 99, 100]:
@@ -1434,7 +1404,7 @@ class GPSListener:
                 return f"Maintenance Alert (CAN Service Distance: {io_value})"
             else:
                 return f"CAN Parameter (ID {io_id}: {io_value})"
-       
+        
         # Generic descriptions based on LATRA activity ID
         latra_activities = {
             1: "Movement/Logging", 2: "Engine ON", 3: "Engine OFF",
@@ -1451,14 +1421,14 @@ class GPSListener:
             35: "Reserved", 36: "Low Fuel Alert", 37: "High Temperature Alert",
             38: "Reserved", 39: "Door Open/Close", 40: "Reserved"
         }
-       
+        
         activity_name = latra_activities.get(latra_activity_id, f"Activity {latra_activity_id}")
         return f"{activity_name} (I/O {io_id}: {io_value})"
 
     def display_activity_specific_data(self, activity_code, record):
         """Display specific information based on activity code"""
         io_elements = record.get("io_elements", {})
-       
+        
         if activity_code == 3:  # Engine OFF
             print("\nENGINE OFF EVENT DETAILS:")
             print(f"Event Time: {record.get('timestamp', 'N/A')}")
@@ -1472,43 +1442,43 @@ class GPSListener:
             print(f"Engine Hours: {io_elements.get(80, 'N/A')}")
             print(f"Fuel Level: {io_elements.get(16, 'N/A')}%")
             print(f"Battery Voltage: {io_elements.get(66, 'N/A')}V")
-       
+        
         elif activity_code == 2:  # Engine ON
             print("\nENGINE ON EVENT DETAILS:")
             print(f"Idle Time: {io_elements.get(11, 'N/A')} seconds")
             print(f"Driver ID: {io_elements.get(245, 'N/A')}")
-       
+        
         elif activity_code in (9, 10):  # Battery/Power events
             print("\nPOWER EVENT DETAILS:")
             print(f"External Power Voltage: {io_elements.get(67, 'N/A')}V")
             print(f"Internal Battery Voltage: {io_elements.get(66, 'N/A')}V")
-       
+        
         elif activity_code in (17, 24):  # Driver identification events
             print("\nDRIVER IDENTIFICATION DETAILS:")
             driver_id = io_elements.get(245, 'N/A')
             if isinstance(driver_id, str) and driver_id.startswith('0x'):
                 driver_id = driver_id[2:]
             print(f"Driver ID (16-digit hex): {driver_id}")
-       
+        
         elif activity_code == 16:  # Fuel data report
             print("\nFUEL DATA REPORT DETAILS:")
             print(f"Data Valid Flag: {io_elements.get(250, 'N/A')} (0=valid)")
             print(f"Signal Sensitivity: {io_elements.get(251, 'N/A')}/99")
             print(f"Software Status: {io_elements.get(252, 'N/A')} (0=normal)")
-           
+            
             hw_fault_code = io_elements.get(253, 0)
             hw_fault_desc = HARDWARE_FAULT_CODES.get(hw_fault_code, "Unknown fault")
             print(f"Hardware Fault: {hw_fault_code} - {hw_fault_desc}")
-           
+            
             print(f"Fuel Level (smoothed): {io_elements.get(16, 'N/A')} mm")
             print(f"Real-time Fuel Level: {io_elements.get(254, 'N/A')} mm")
-           
+            
             temp_raw = io_elements.get(255, 0)
             temp_celsius = float(temp_raw) / 10 if isinstance(temp_raw, (int, float)) else 'N/A'
             print(f"Tank Temperature: {temp_celsius}°C")
-           
+            
             print(f"Fuel Tank Compartment: {io_elements.get(256, 1)}")
-       
+        
         print("END OF ACTIVITY DETAILS\n")
 
     def sorting_hat(self, key, value):
@@ -1566,11 +1536,11 @@ class GPSListener:
     def get_addon_info_for_activity(self, activity_id, io_elements):
         """Generate addon_info based on activity ID"""
         addon_info = {}
-       
+        
         if activity_id == 2:  # Engine ON / Trip Start
             if 11 in io_elements:  # Idle time
                 addon_info["idleTime"] = str(io_elements[11])
-           
+            
             if 245 in io_elements:  # Driver identification
                 driver_id = io_elements[245]
                 # Convert to 16-digit hex string if needed
@@ -1581,27 +1551,27 @@ class GPSListener:
                 else:
                     driver_id = str(driver_id).upper().zfill(16)
                 addon_info["v_driver_identification_no"] = driver_id
-               
+                
         elif activity_id == 3:  # Engine OFF / Trip End
             if 239 in io_elements:  # Distance travelled
                 addon_info["distance_travelled"] = str(io_elements[239])
-           
+            
             if 80 in io_elements:  # Trip duration
                 addon_info["trip_duration"] = str(io_elements[80])
-           
+            
             if 241 in io_elements:  # Average speed
                 addon_info["avgSpeed"] = str(io_elements[241])
-           
+            
             if 242 in io_elements:  # Max speed
                 addon_info["maxSpeed"] = str(io_elements[242])
-               
+                
         elif activity_id in [9, 10]:  # Power status events
             if 67 in io_elements:  # External power voltage
                 addon_info["ext_power_voltage"] = str(io_elements[67])
-           
+            
             if 66 in io_elements:  # Internal battery voltage
                 addon_info["int_battery_voltage"] = str(io_elements[66])
-               
+                
         elif activity_id in [17, 24]:  # Invalid Scan and Regular Ibutton Scan
             if 245 in io_elements:  # Driver identification
                 driver_id = io_elements[245]
@@ -1612,73 +1582,73 @@ class GPSListener:
                     driver_id = f"{driver_id:016X}"
                 else:
                     driver_id = str(driver_id).upper().zfill(16)
-                   
+                    
                 # Use FFFFFFFFFFFFFFFF when no valid identification detected
                 if not driver_id or driver_id == "0000000000000000":
                     driver_id = "FFFFFFFFFFFFFFFF"
-                   
+                    
                 addon_info["v_driver_identification_no"] = driver_id
-       
+        
         return addon_info if addon_info else None
 
     def get_fuel_info_for_activity(self, activity_id, io_elements):
         """Generate fuel_info based on activity ID"""
         if activity_id != 16:  # Only for fuel data report
             return None
-           
+            
         fuel_info = {}
-       
+        
         if 250 in io_elements:  # Data valid flag
             fuel_info["validFlag"] = str(io_elements[250])
-       
+        
         if 251 in io_elements:  # Signal sensitivity
             fuel_info["signalLevel"] = str(io_elements[251])
-       
+        
         if 252 in io_elements:  # Software status
             fuel_info["softStatus"] = str(io_elements[252])
-       
+        
         if 253 in io_elements:  # Hardware fault code
             fuel_info["hardFault"] = str(io_elements[253])
-       
+        
         if 16 in io_elements:  # Fuel level (smoothed)
             fuel_info["fuelLevel"] = str(io_elements[16])
-       
+        
         if 254 in io_elements:  # Real-time fuel level
             fuel_info["rtFuelLevel"] = str(io_elements[254])
-       
+        
         if 255 in io_elements:  # Tank temperature (already multiplied by 10)
             fuel_info["tankTemp"] = str(io_elements[255])
-       
+        
         if 256 in io_elements:  # Fuel tank compartment
             fuel_info["channel"] = str(io_elements[256])
         else:
             fuel_info["channel"] = "1"  # Default value
-       
+        
         return fuel_info if fuel_info else None
 
     def generate_dynamic_mgs_id(self):
         """Generate dynamic MGS_ID with incrementing counter and timestamp"""
         import random
-       
+        
         # Increment counter and reset if it gets too high
         self.mgs_id_counter += 1
         if self.mgs_id_counter > 99999:
             self.mgs_id_counter = 10000
-       
+        
         # Add some randomness based on current time
         timestamp_part = int(time.time()) % 10000  # Last 4 digits of timestamp
         random_part = random.randint(100, 999)  # 3-digit random number
-       
+        
         # Combine counter with timestamp and random parts
         dynamic_id = f"{self.mgs_id_counter}{timestamp_part % 100}{random_part % 100}"
-       
+        
         return dynamic_id[:8]  # Ensure it's not too long
 
     def send_to_latra(self, vehicle, data):
         """Send data to LATRA API with retry logic and activity-specific addon_info"""
         max_retries = 3
         retry_delay = 1  # seconds
-       
+        
         for attempt in range(max_retries):
             try:
                 # Prepare payload for each record
@@ -1689,28 +1659,28 @@ class GPSListener:
                         timestamp_str = record["timestamp"].split(" (")[0]
                         try:
                             timestamp = int(datetime.datetime.strptime(
-                                timestamp_str,
+                                timestamp_str, 
                                 "%H:%M:%S %d-%m-%Y"
                             ).timestamp() * 1000)
-                           
+                            
                             # Validate timestamp (should be reasonable)
                             current_time = int(time.time() * 1000)
                             if timestamp <= 0 or timestamp > current_time + (24 * 60 * 60 * 1000):  # Not in future by more than 1 day
                                 print(f"Warning: Invalid timestamp {timestamp}, using current time")
                                 timestamp = current_time
-                               
+                                
                         except Exception as e:
                             print(f"Error parsing timestamp {timestamp_str}: {e}, using current time")
                             timestamp = int(time.time() * 1000)
-                       
+                        
                         # Extract activity ID from stored LATRA activity ID (already mapped)
                         io_elements = record.get("io_elements", {})
                         event_id = record.get("event_id", 0)
-                       
+                        
                         # Use the pre-calculated LATRA activity ID from parsing
                         activity_id = record.get("latra_activity_id")
                         activity_source = "none"
-                       
+                        
                         # Fallback logic if latra_activity_id is not set
                         if activity_id is None:
                             # Primary: Use Event ID field and map to LATRA activity
@@ -1722,21 +1692,21 @@ class GPSListener:
                                     activity_id = event_id  # Use Event ID directly if no mapping
                                 activity_source = "Event ID"
                                 print(f"DEBUG: Fallback - Using Event ID as activity: {activity_id}")
-                           
+                            
                             # Secondary: Use I/O 240 (Movement) -> LATRA Activity 1
                             elif 240 in io_elements:
                                 activity_id = 1  # LATRA Movement/Logging activity
                                 activity_source = "I/O 240 (Movement)"
                                 movement_state = io_elements[240]
                                 print(f"DEBUG: Fallback - Using I/O 240 as activity: {activity_id}, state: {movement_state}")
-                           
+                            
                             # Tertiary: Use I/O 239 (Ignition) -> LATRA Activity 2/3
                             elif 239 in io_elements:
                                 ignition_state = io_elements[239]
                                 activity_id = 2 if ignition_state == 1 else 3  # Engine ON/OFF
                                 activity_source = "I/O 239 (Ignition)"
                                 print(f"DEBUG: Fallback - Using I/O 239 as activity: {activity_id}, state: {ignition_state}")
-                           
+                            
                             # Final fallback: Use default movement activity for any GPS record
                             else:
                                 activity_id = 1  # Default LATRA Movement/Logging activity
@@ -1744,20 +1714,20 @@ class GPSListener:
                                 print(f"DEBUG: Final fallback - Using default activity: {activity_id}")
                         else:
                             activity_source = "Pre-calculated LATRA mapping"
-                       
+                        
                         # Ensure we always have an activity ID (should never be None now)
                         if activity_id is None:
                             activity_id = 1  # Ultimate fallback to Movement/Logging
                             print(f"DEBUG: Ultimate fallback - Using activity ID: {activity_id}")
-                       
+                        
                         print(f"DEBUG: Final LATRA Activity ID for transmission: {activity_id} (source: {activity_source})")
-                       
+                        
                         # Generate dynamic MGS_ID for this record
                         dynamic_mgs_id = self.generate_dynamic_mgs_id()
-                       
+                        
                         # Get speed value
                         speed_value = record.get("speed", 0)
-                       
+                        
                         print(f"🎯 LATRA TRANSMISSION DETAILS:")
                         print(f"   📍 Activity ID: {activity_id} (Source: {activity_source})")
                         print(f"   🚗 Speed: {speed_value} km/h")
@@ -1775,23 +1745,23 @@ class GPSListener:
                             if len(io_elements) > 5:
                                 print(f"      ... and {len(io_elements) - 5} more I/O elements")
                         print(f"   🚀 STATUS: PREPARING FOR LATRA TRANSMISSION ✅")
-                       
+                        
                         # Build base item with proper validation
                         latitude = record.get("latitude", 0)
                         longitude = record.get("longitude", 0)
-                       
+                        
                         print(f"🔍 COORDINATE DEBUG:")
                         print(f"   Raw latitude: {latitude} (type: {type(latitude)})")
                         print(f"   Raw longitude: {longitude} (type: {type(longitude)})")
                         print(f"   Activity ID: {activity_id}")
                         print(f"   Record data: {record.get('latitude')}, {record.get('longitude')}")
-                       
+                        
                         # Define activities that don't require valid GPS coordinates
                         non_gps_activities = [8, 9, 10, 14, 15, 16, 17, 24, 26, 31, 34]  # Panic, Battery, Power, Device events, etc.
-                       
+                        
                         # More inclusive coordinate validation
                         coordinates_valid = False
-                       
+                        
                         # Check if coordinates are in valid range
                         if (-90.0 <= latitude <= 90.0) and (-180.0 <= longitude <= 180.0):
                             if latitude != 0.0 or longitude != 0.0:
@@ -1823,29 +1793,29 @@ class GPSListener:
                                 latitude = -1.286389
                                 longitude = 36.817223
                                 coordinates_valid = True
-                       
+                        
                         # ALWAYS try to send to LATRA - let LATRA decide if coordinates are acceptable
                         if not coordinates_valid:
                             latitude = -1.286389
                             longitude = 36.817223
                             print(f"� FINAL FALLBACK: Using Nairobi coordinates ({latitude:.6f}, {longitude:.6f})")
-                       
+                        
                         print(f"📍 FINAL COORDINATES TO SEND: ({latitude:.6f}, {longitude:.6f})")
-                       
-                       
+                        
+                        
                         # Extract additional LATRA required fields from I/O elements - ONLY REAL DATA
                         io_elements = record.get("io_elements", {})
-                       
+                        
                         # Satellite Count - Only from parsed GPS data
                         satellite_count = record.get("satellites", 0)
                         # NO DEFAULT from I/O elements
-                       
+                        
                         # HDOP (Horizontal Dilution of Precision) - Only from actual I/O
                         hdop_value = "0"  # Default to 0 (unknown) instead of fake value
                         if 182 in io_elements:  # GPS HDOP
                             hdop_value = f"{io_elements[182] / 10:.1f}"
                         # NO ESTIMATION from other I/O elements
-                       
+                        
                         # GPS Mode (2D/3D) - Only from actual I/O
                         gps_mode = "0"  # Default to 0 (unknown) instead of fake 3D
                         if 181 in io_elements:  # GPS Fix Type
@@ -1855,25 +1825,25 @@ class GPSListener:
                             gps_mode = "3"  # Only if we have enough satellites
                         elif satellite_count > 0:
                             gps_mode = "2"  # 2D if some satellites
-                       
+                        
                         # RSSI (Received Signal Strength Indication) - Only from actual I/O
                         rssi_value = "0"  # Default to 0 (unknown)
                         if 21 in io_elements:  # GSM Signal Strength
                             rssi_value = str(io_elements[21])
                         # NO ESTIMATION from other sources
-                       
+                        
                         # LAC (Location Area Code) - Only from actual I/O
                         lac_value = "0"  # Default to 0 (unknown) instead of fake 123
                         if 212 in io_elements:  # GSM Cell LAC
                             lac_value = str(io_elements[212])
                         # NO EXTRACTION from operator codes
-                       
+                        
                         # Cell ID - Only from actual I/O
                         cell_id_value = "0"  # Default to 0 (unknown) instead of fake 12345
                         if 213 in io_elements:  # GSM Cell ID
                             cell_id_value = str(io_elements[213])
                         # NO FALLBACK to other I/O elements
-                       
+                        
                         # MCC (Mobile Country Code) - Only from actual I/O
                         mcc_value = "0"  # Default to 0 (unknown) instead of assuming Kenya
                         if 14 in io_elements:  # GSM Operator Code
@@ -1886,7 +1856,7 @@ class GPSListener:
                             except (ValueError, TypeError):
                                 print(f"DEBUG: Invalid operator code: {operator_code}, using default MCC")
                                 mcc_value = "0"
-                       
+                        
                         print(f"📊 LATRA FIELDS - REAL DATA ONLY:")
                         print(f"   ️  Satellite Count: {satellite_count} (Source: {'GPS data' if satellite_count > 0 else 'NOT AVAILABLE'})")
                         print(f"   📡 HDOP: {hdop_value} (Source: {'I/O 182' if 182 in io_elements else 'NOT AVAILABLE'})")
@@ -1914,28 +1884,28 @@ class GPSListener:
                             "MCC": str(mcc_value),
                             "activity_id": str(activity_id)  # Send activity_id as string without modification
                         }
-                       
+                        
                         # Add addon_info based on activity ID
                         addon_info = self.get_addon_info_for_activity(activity_id, io_elements)
                         if addon_info:
                             item["addon_info"] = addon_info
                             print(f"📋 ADDON_INFO ADDED: {addon_info}")
-                       
+                        
                         # Add fuel_info for activity 16
                         fuel_info = self.get_fuel_info_for_activity(activity_id, io_elements)
                         if fuel_info:
                             item["fuel_info"] = fuel_info
                             print(f"⛽ FUEL_INFO ADDED: {fuel_info}")
-                       
+                        
                         # Print complete item data before adding to items list
                         print(f"\n🎯 COMPLETE LATRA ITEM DATA:")
                         print(f"{'='*60}")
                         for key, value in item.items():
                             print(f"   {key}: {value}")
                         print(f"{'='*60}")
-                       
+                        
                         items.append(item)
-                       
+                        
                     except Exception as e:
                         print(f"Error preparing record for LATRA: {e}")
                         continue
@@ -1972,7 +1942,7 @@ class GPSListener:
                 print(f"📊 Type: {payload['type']}")
                 print(f"📦 Total Items: {len(payload['items'])}")
                 print(f"{'='*80}")
-               
+                
                 # Print each item in detail
                 for idx, item in enumerate(payload['items'], 1):
                     print(f"\n📍 ITEM {idx} DATA:")
@@ -1990,17 +1960,17 @@ class GPSListener:
                     print(f"   🆔 MGS ID: {item['MGS_ID']}")
                     print(f"   🌍 MCC: {item['MCC']}")
                     print(f"   🎯 Activity ID: {item['activity_id']}")
-                   
+                    
                     if 'addon_info' in item:
                         print(f"   📋 Addon Info:")
                         for key, value in item['addon_info'].items():
                             print(f"      - {key}: {value}")
-                   
+                    
                     if 'fuel_info' in item:
                         print(f"   ⛽ Fuel Info:")
                         for key, value in item['fuel_info'].items():
                             print(f"      - {key}: {value}")
-               
+                
                 print(f"\n{'='*80}")
                 print(f"🚀 SENDING COMPLETE PAYLOAD TO LATRA...")
                 print(f"{'='*80}")
@@ -2015,7 +1985,7 @@ class GPSListener:
                     headers=headers,
                     timeout=10
                 )
-               
+                
                 # Better error handling
                 if response.status_code != 200:
                     error_msg = f"LATRA API returned status {response.status_code}"
@@ -2027,7 +1997,7 @@ class GPSListener:
                         error_msg += f": {response.text}"
                         print(f"LATRA Error Text: {response.text}")
                     return False, {"error": error_msg}
-               
+                
                 response_data = response.json()
                 print(f"\n✅ LATRA API SUCCESS RESPONSE:")
                 print(f"{'='*50}")
@@ -2037,19 +2007,19 @@ class GPSListener:
                 print(f"📦 Items Sent: {len(items)}")
                 print(f"{'='*50}")
                 return True, response_data
-               
+                
             except requests.exceptions.RequestException as e:
                 if attempt == max_retries - 1:
                     return False, {"error": str(e)}
                 time.sleep(retry_delay * (attempt + 1))
             except Exception as e:
                 return False, {"error": str(e)}
-       
+        
         return False, {"error": "Max retries exceeded"}
 
 if __name__ == "__main__":
     listener = GPSListener()
-   
+    
     # Start GPS listener for real data only
     print("="*60)
     print("GPS LISTENER - WAITING FOR REAL DEVICE CONNECTIONS")
@@ -2058,5 +2028,6 @@ if __name__ == "__main__":
     print("📡 Only real GPS data from devices will be processed")
     print("🚫 No simulation or test data will be generated")
     print("="*60)
-   
+    
     listener.start_listener()
+
