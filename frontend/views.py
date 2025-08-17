@@ -64,11 +64,8 @@ def dashboard_view(request):
     success_count = ReportedData.objects.filter(is_success=True).count()
     failed_count = ReportedData.objects.filter(is_success=False).count()
     
-    # Get recent reported data with pagination
+    # Get all reported data without pagination
     reported_data = ReportedData.objects.select_related('vehicle__imei').order_by('-created_at')
-    paginator = Paginator(reported_data, 10)  # Show 10 records per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
     
     context = {
         'total_devices': total_devices,
@@ -78,7 +75,7 @@ def dashboard_view(request):
         'total_reported_data': total_reported_data,
         'success_count': success_count,
         'failed_count': failed_count,
-        'reported_data': page_obj,
+        'reported_data': reported_data,
     }
     
     return render(request, 'frontend/dashboard.html', context)

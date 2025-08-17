@@ -202,7 +202,116 @@
                                         <code>{{ data.vehicle.imei.imei_number }}</code>
                                     </div>
                                 </td>
-                                <!-- Other table cells... -->
+                                <td>
+                                    {% if data.processed_data.records %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-map-pin text-danger me-2"></i>
+                                            {{ data.processed_data.records.0.latitude|floatformat:6 }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.processed_data.records %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-map-pin text-success me-2"></i>
+                                            {{ data.processed_data.records.0.longitude|floatformat:6 }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.processed_data.records %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-tachometer-alt text-warning me-2"></i>
+                                            <span class="badge bg-info">
+                                                {{ data.processed_data.records.0.speed|default:"0" }} km/h
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.processed_data.records %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-satellite text-primary me-2"></i>
+                                            <span class="badge bg-secondary">
+                                                {{ data.processed_data.records.0.satellites|default:"0" }}
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.processed_data.records %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-mountain text-success me-2"></i>
+                                            <span class="badge bg-dark">
+                                                {{ data.processed_data.records.0.altitude|default:"0" }}m
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.processed_data.records %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-compass text-info me-2"></i>
+                                            <span class="badge bg-warning text-dark">
+                                                {{ data.processed_data.records.0.angle|default:"0" }}°
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.processed_data.records and data.processed_data.records.0.io_elements.240 %}
+                                        <div class="activity-info">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <i class="fas fa-tasks text-warning me-2"></i>
+                                                <span class="badge bg-secondary">
+                                                    {{ data.processed_data.records.0.io_elements.240 }}
+                                                </span>
+                                            </div>
+                                            <small class="activity-name text-success" data-activity-id="{{ data.processed_data.records.0.io_elements.240 }}">
+                                                <i class="fas fa-spinner fa-spin me-1"></i>Loading...
+                                            </small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.is_success %}
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-success me-2">
+                                                <i class="fas fa-check-circle"></i> SUCCESS
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    onclick="showResponseModal('{{ data.latra_response|escapejs }}')"
+                                                    title="View Response Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-danger me-2">
+                                                <i class="fas fa-exclamation-triangle"></i> FAILED
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    onclick="showResponseModal('{{ data.latra_response|escapejs }}')"
+                                                    title="View Error Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -301,5 +410,55 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('fromDate').value = today;
     document.getElementById('toDate').value = today;
 });
+
+// Function to display response details in a modal
+function showResponseModal(responseData) {
+    try {
+        // Parse the JSON string
+        const data = JSON.parse(responseData);
+        
+        // Create a formatted JSON string with indentation
+        const formattedJson = JSON.stringify(data, null, 2);
+        
+        // Create modal HTML
+        const modalHtml = `
+        <div class="modal fade" id="responseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content bg-dark text-light border-secondary">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title"><i class="fas fa-server me-2"></i>Response Details</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <pre class="bg-darker p-3 rounded text-light overflow-auto" style="max-height: 400px;">${formattedJson}</pre>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        // Remove existing modal if present
+        const existingModal = document.getElementById('responseModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Append the modal to the body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('responseModal'));
+        modal.show();
+    } catch (e) {
+        console.error('Error parsing response data:', e);
+        alert('Error displaying response data. See console for details.');
+    }
+}
 </script>
+
+<!-- Response Modal will be inserted here dynamically -->
+
 {% endblock %}
