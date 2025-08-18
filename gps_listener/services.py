@@ -1538,18 +1538,29 @@ class GPSListener:
     def parse_driver_id(self, hex_value):
         """Properly parse driver ID/iButton hex values"""
         try:
-            if not hex_value:
-                print(f"DEBUG: Empty iButton hex value, returning FFFFFFFFFFFFFFFF")
+            print(f"🔍 PARSE_DRIVER_ID CALLED with: '{hex_value}' (type: {type(hex_value)})")
+            
+            if hex_value is None:
+                print(f"DEBUG: None iButton hex value, returning FFFFFFFFFFFFFFFF")
                 return "FFFFFFFFFFFFFFFF"
             
             # Convert to string and handle different input types
             if isinstance(hex_value, (int, float)):
+                if hex_value == 0:
+                    print(f"DEBUG: Zero numeric value, returning FFFFFFFFFFFFFFFF")
+                    return "FFFFFFFFFFFFFFFF"
                 # If it's a number, convert to hex string
                 clean_hex = f"{int(hex_value):X}".upper()
                 print(f"DEBUG: Converted number {hex_value} to hex: {clean_hex}")
             else:
+                # Handle string input
+                str_value = str(hex_value).strip()
+                if not str_value or str_value == "0":
+                    print(f"DEBUG: Empty or zero string value, returning FFFFFFFFFFFFFFFF")
+                    return "FFFFFFFFFFFFFFFF"
+                
                 # Remove 0x prefix if present and convert to uppercase
-                clean_hex = str(hex_value).replace("0x", "").replace("0X", "").upper().strip()
+                clean_hex = str_value.replace("0x", "").replace("0X", "").upper().strip()
             
             # Debug logging
             print(f"DEBUG: Parsing iButton - Raw: '{hex_value}' -> Clean: '{clean_hex}'")
@@ -1579,7 +1590,7 @@ class GPSListener:
                 return "FFFFFFFFFFFFFFFF"
             
             # Return the cleaned hex value - DON'T reject all F's as they might be valid
-            print(f"DEBUG: Valid iButton ID found: '{clean_hex}'")
+            print(f"DEBUG: ✅ Valid iButton ID found: '{clean_hex}'")
             return clean_hex
             
         except Exception as e:
