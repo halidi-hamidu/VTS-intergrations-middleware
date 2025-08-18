@@ -1042,37 +1042,25 @@ class GPSListener:
                        
                         # Check for low internal battery (I/O 67 - Battery Voltage)
                         if not detected_activity and 67 in io_elements:
-                            battery_voltage = io_elements[67]
+                            battery_voltage = io_elements[67]  # Already parsed by sorting_hat with 0.01 multiplier
                             try:
-                                # Convert to voltage (Teltonika uses raw ADC values that need conversion)
-                                # Some devices send in mV, others in different scales
-                                if isinstance(battery_voltage, (int, float)):
-                                    # Try different conversion methods
-                                    if battery_voltage > 1000:  # Likely in mV
-                                        voltage = float(battery_voltage) / 1000.0
-                                    elif battery_voltage > 100:  # Likely in 10mV units
-                                        voltage = float(battery_voltage) / 100.0
-                                    else:
-                                        voltage = float(battery_voltage)  # Already in V
+                                # battery_voltage is already in volts (parsed by sorting_hat)
+                                voltage = float(battery_voltage)
                                    
-                                    print(f"🔋 BATTERY VOLTAGE CHECK: Raw={battery_voltage}, Converted={voltage:.2f}V")
+                                print(f"🔋 BATTERY VOLTAGE CHECK: Parsed={voltage:.2f}V")
                                    
-                                    # More lenient battery check - even moderate drops are concerning
-                                    if voltage > 0 and voltage < 12.0:  # Less than 12V is worth reporting
-                                        detected_activity = 9  # LATRA Activity ID 9 (Internal Battery Low)
-                                        record["activity"] = f"9 - Internal Battery Low ({voltage:.2f}V)"
-                                        print(f"🔋 LOW BATTERY DETECTED: {voltage:.2f}V -> LATRA Activity 9")
-                                    elif voltage == 0:
-                                        # Zero voltage is definitely an issue
-                                        detected_activity = 9  # LATRA Activity ID 9 (Internal Battery Low)
-                                        record["activity"] = f"9 - Internal Battery Low (0V - No Reading)"
-                                        print(f"🔋 ZERO BATTERY VOLTAGE -> LATRA Activity 9")
+                                # Battery low check - for backup battery, anything below 3.5V is concerning
+                                if voltage > 0 and voltage < 3.5:  # Less than 3.5V for backup battery
+                                    detected_activity = 9  # LATRA Activity ID 9 (Internal Battery Low)
+                                    record["activity"] = f"9 - Internal Battery Low ({voltage:.2f}V)"
+                                    print(f"🔋 LOW BATTERY DETECTED: {voltage:.2f}V -> LATRA Activity 9")
+                                elif voltage == 0:
+                                    # Zero voltage is definitely an issue
+                                    detected_activity = 9  # LATRA Activity ID 9 (Internal Battery Low)
+                                    record["activity"] = f"9 - Internal Battery Low (0V - No Reading)"
+                                    print(f"🔋 ZERO BATTERY VOLTAGE -> LATRA Activity 9")
                                 else:
-                                    print(f"🔋 BATTERY VOLTAGE: Non-numeric value {battery_voltage}, checking for low battery condition anyway")
-                                    # Even if we can't parse it, if I/O 67 is present, it might be a battery event
-                                    detected_activity = 9
-                                    record["activity"] = f"9 - Internal Battery Low (Unparseable: {battery_voltage})"
-                                    print(f"🔋 UNPARSEABLE BATTERY VALUE -> LATRA Activity 9")
+                                    print(f"🔋 BATTERY VOLTAGE NORMAL: {voltage:.2f}V (above 3.5V threshold)")
                                    
                             except (ValueError, TypeError) as e:
                                 print(f"DEBUG: Error parsing battery voltage {battery_voltage}: {e}")
@@ -1083,30 +1071,20 @@ class GPSListener:
                        
                         # Check for external power disconnection (I/O 66 - External Voltage)
                         if not detected_activity and 66 in io_elements:
-                            ext_voltage = io_elements[66]
+                            ext_voltage = io_elements[66]  # Already parsed by sorting_hat with 0.01 multiplier
                             try:
-                                # Convert to voltage (similar logic as battery)
-                                if isinstance(ext_voltage, (int, float)):
-                                    if ext_voltage > 1000:  # Likely in mV
-                                        voltage = float(ext_voltage) / 1000.0
-                                    elif ext_voltage > 100:  # Likely in 10mV units
-                                        voltage = float(ext_voltage) / 100.0
-                                    else:
-                                        voltage = float(ext_voltage)  # Already in V
+                                # ext_voltage is already in volts (parsed by sorting_hat)
+                                voltage = float(ext_voltage)
                                    
-                                    print(f"🔌 EXTERNAL VOLTAGE CHECK: Raw={ext_voltage}, Converted={voltage:.2f}V")
+                                print(f"🔌 EXTERNAL VOLTAGE CHECK: Parsed={voltage:.2f}V")
                                    
-                                    # External power disconnection check
-                                    if voltage == 0 or (voltage > 0 and voltage < 9.0):  # Less than 9V or 0V
-                                        detected_activity = 10  # LATRA Activity ID 10 (External Power Disconnected)
-                                        record["activity"] = f"10 - External Power Disconnected ({voltage:.2f}V)"
-                                        print(f"🔌 EXTERNAL POWER DISCONNECTED: {voltage:.2f}V -> LATRA Activity 10")
+                                # External power disconnection check
+                                if voltage == 0 or (voltage > 0 and voltage < 9.0):  # Less than 9V or 0V
+                                    detected_activity = 10  # LATRA Activity ID 10 (External Power Disconnected)
+                                    record["activity"] = f"10 - External Power Disconnected ({voltage:.2f}V)"
+                                    print(f"🔌 EXTERNAL POWER DISCONNECTED: {voltage:.2f}V -> LATRA Activity 10")
                                 else:
-                                    print(f"🔌 EXTERNAL VOLTAGE: Non-numeric value {ext_voltage}, checking for power disconnect anyway")
-                                    # Even if we can't parse it, if I/O 66 is present, it might be a power event
-                                    detected_activity = 10
-                                    record["activity"] = f"10 - External Power Disconnected (Unparseable: {ext_voltage})"
-                                    print(f"🔌 UNPARSEABLE EXTERNAL VOLTAGE -> LATRA Activity 10")
+                                    print(f"🔌 EXTERNAL VOLTAGE NORMAL: {voltage:.2f}V (above 9V threshold)")
                                    
                             except (ValueError, TypeError) as e:
                                 print(f"DEBUG: Error parsing external voltage {ext_voltage}: {e}")
@@ -1126,33 +1104,89 @@ class GPSListener:
                                 detected_activity = 19  # LATRA Activity ID 19 (Engine Stop)
                                 record["activity"] = "19 - Engine Stop (Trip Stop)"
                                 print(f"🛑 TRIP STOP DETECTED (I/O 250=0) -> LATRA Activity 19")
+                        
+                        # Check for ignition/journey events (I/O 239 - Ignition/Journey) - COMPREHENSIVE CHECK
+                        if not detected_activity and 239 in io_elements:
+                            ignition_state = io_elements[239]
+                            print(f"🔍 COMPREHENSIVE I/O 239 CHECK: Journey/Ignition state = {ignition_state}")
+                            if ignition_state == 1:  # Journey/Ignition ON
+                                detected_activity = 2  # LATRA Activity ID 2 (Engine ON)
+                                record["activity"] = "2 - Engine ON (I/O 239 Journey/Ignition ON)"
+                                print(f"🔑 JOURNEY/IGNITION ON DETECTED (I/O 239=1) -> LATRA Activity 2")
+                            elif ignition_state == 0:  # Journey/Ignition OFF
+                                detected_activity = 3  # LATRA Activity ID 3 (Engine OFF)
+                                record["activity"] = "3 - Engine OFF (I/O 239 Journey/Ignition OFF)"
+                                print(f"🔑 JOURNEY/IGNITION OFF DETECTED (I/O 239=0) -> LATRA Activity 3")
+                            else:
+                                print(f"🔍 I/O 239 has unexpected value: {ignition_state}, treating as status change")
+                                # For any other value, treat as journey status change
+                                detected_activity = 1  # Default to movement/logging
+                                record["activity"] = f"1 - Movement/Logging (I/O 239 Journey Status: {ignition_state})"
+                                print(f"🔄 JOURNEY STATUS CHANGE (I/O 239={ignition_state}) -> LATRA Activity 1")
                        
                         # Check for driver identification (I/O 78 - iButton or I/O 245 - Driver ID)
                         if not detected_activity and (78 in io_elements or 245 in io_elements):
                             # Check I/O 78 (iButton) first
                             if 78 in io_elements:
                                 ibutton_id = io_elements[78]
-                                if ibutton_id and str(ibutton_id) != "0" and str(ibutton_id) != "0x0000000000000000":
+                                
+                                # Check if the iButton ID is valid (not an error pattern)
+                                is_valid_ibutton = False
+                                if ibutton_id is not None:
+                                    # Convert to string for checking
+                                    ibutton_str = str(ibutton_id).replace("0x", "").replace("0X", "").upper().strip()
+                                    
+                                    # Check for invalid patterns
+                                    invalid_patterns = [
+                                        "",                    # Empty
+                                        "0",                   # Just zero
+                                        "00000000",            # 4-byte zeros
+                                        "0000000000000000",    # 8-byte zeros  
+                                        "FFFFFFFFFFFFFFFF",    # All F's (device error indicator)
+                                        "FFFFFFFF",            # 4-byte F's
+                                    ]
+                                    
+                                    is_valid_ibutton = ibutton_str not in invalid_patterns and len(ibutton_str) > 0
+                                
+                                if is_valid_ibutton:
                                     detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
                                     record["activity"] = f"24 - Ibutton Scan (Regular) - iButton ID: {ibutton_id}"
-                                    print(f"👤 IBUTTON SCANNED (I/O 78): {ibutton_id} -> LATRA Activity 24")
+                                    print(f"👤 VALID IBUTTON SCANNED (I/O 78): {ibutton_id} -> LATRA Activity 24")
                                 else:
                                     detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
-                                    record["activity"] = "17 - Invalid Scan (No iButton ID)"
-                                    print(f"❌ INVALID IBUTTON SCAN (I/O 78) -> LATRA Activity 17")
+                                    record["activity"] = f"17 - Invalid Scan (Invalid iButton pattern: {ibutton_id})"
+                                    print(f"❌ INVALID IBUTTON SCAN (I/O 78): {ibutton_id} -> LATRA Activity 17")
                            
                             # Check I/O 245 (Driver ID) if no I/O 78 or if I/O 78 was invalid
                             elif 245 in io_elements:
                                 driver_id = io_elements[245]
-                                # Accept ANY driver ID value - don't filter out zeros or other values
+                                
+                                # Check if the driver ID is valid (not an error pattern)
+                                is_valid_driver_id = False
                                 if driver_id is not None:
+                                    # Convert to string for checking
+                                    driver_str = str(driver_id).replace("0x", "").replace("0X", "").upper().strip()
+                                    
+                                    # Check for invalid patterns
+                                    invalid_patterns = [
+                                        "",                    # Empty
+                                        "0",                   # Just zero
+                                        "00000000",            # 4-byte zeros
+                                        "0000000000000000",    # 8-byte zeros  
+                                        "FFFFFFFFFFFFFFFF",    # All F's (device error indicator)
+                                        "FFFFFFFF",            # 4-byte F's
+                                    ]
+                                    
+                                    is_valid_driver_id = driver_str not in invalid_patterns and len(driver_str) > 0
+                                
+                                if is_valid_driver_id:
                                     detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
                                     record["activity"] = f"24 - Ibutton Scan (Regular) - Driver ID: {driver_id}"
-                                    print(f"👤 DRIVER ID SCANNED (I/O 245): {driver_id} -> LATRA Activity 24")
+                                    print(f"👤 VALID DRIVER ID SCANNED (I/O 245): {driver_id} -> LATRA Activity 24")
                                 else:
                                     detected_activity = 17  # LATRA Activity ID 17 (Invalid Scan)
-                                    record["activity"] = "17 - Invalid Scan (No Driver ID)"
-                                    print(f"❌ INVALID DRIVER ID SCAN (I/O 245) -> LATRA Activity 17")
+                                    record["activity"] = f"17 - Invalid Scan (Invalid driver ID pattern: {driver_id})"
+                                    print(f"❌ INVALID DRIVER ID SCAN (I/O 245): {driver_id} -> LATRA Activity 17")
                        
                         # Check for panic button (I/O 200 - can be panic/emergency)
                         if not detected_activity and 200 in io_elements:
@@ -1534,7 +1568,7 @@ class GPSListener:
         print("END OF ACTIVITY DETAILS\n")
 
     def parse_driver_id(self, hex_value):
-        """Parse driver ID/iButton hex values - send as-is without forcing FFFFFFFFFFFFFFFF"""
+        """Parse driver ID/iButton hex values - properly handle invalid scans"""
         try:
             print(f"🔍 PARSE_DRIVER_ID CALLED with: '{hex_value}' (type: {type(hex_value)})")
             
@@ -1570,6 +1604,17 @@ class GPSListener:
                 print(f"DEBUG: Invalid hex characters in iButton value: '{clean_hex}', returning as-is")
                 return str(hex_value)  # Return original value if not valid hex
             
+            # Check for invalid scan patterns - these indicate device couldn't read iButton properly
+            invalid_patterns = [
+                "FFFFFFFFFFFFFFFF",  # All F's - common invalid scan indicator
+                "0000000000000000",  # All zeros - empty/null value
+            ]
+            
+            # If we have an exact match for invalid patterns, return empty string
+            if clean_hex in invalid_patterns:
+                print(f"DEBUG: ⚠️ Invalid iButton scan pattern detected: '{clean_hex}' - returning empty string")
+                return ""
+            
             # Pad to 16 characters (8 bytes) if needed
             if len(clean_hex) < 16:
                 clean_hex = clean_hex.zfill(16)
@@ -1579,8 +1624,8 @@ class GPSListener:
                 clean_hex = clean_hex[-16:]
                 print(f"DEBUG: Truncated iButton value to 16 chars: '{clean_hex}'")
             
-            # SEND AS-IS - Don't reject any values including all zeros!
-            print(f"DEBUG: ✅ Sending iButton ID as-is: '{clean_hex}'")
+            # Send valid iButton ID
+            print(f"DEBUG: ✅ Sending valid iButton ID: '{clean_hex}'")
             return clean_hex
             
         except Exception as e:
@@ -1638,7 +1683,11 @@ class GPSListener:
             2: lambda x: self.safe_hex_to_int(x),
             3: lambda x: self.safe_hex_to_int(x),
             6: lambda x: float(decimal.Decimal(self.safe_hex_to_int(x)) * decimal.Decimal('0.001')),
-            180: lambda x: self.safe_hex_to_int(x)
+            180: lambda x: self.safe_hex_to_int(x),
+            199: lambda x: self.safe_hex_to_int(x),  # Trip Odometer (meters)
+            80: lambda x: self.safe_hex_to_int(x),   # Trip duration (seconds)
+            241: lambda x: float(decimal.Decimal(self.safe_hex_to_int(x)) * decimal.Decimal('0.1')),  # Average speed
+            242: lambda x: float(decimal.Decimal(self.safe_hex_to_int(x)) * decimal.Decimal('0.1')),  # Max speed
         }
 
         try:
@@ -1667,29 +1716,131 @@ class GPSListener:
                     driver_id = str(driver_id).upper().zfill(16)
                 addon_info["v_driver_identification_no"] = driver_id
                
-        elif activity_id == 3:  # Engine OFF / Trip End
-            if 239 in io_elements:  # Distance travelled
-                addon_info["distance_travelled"] = str(io_elements[239])
-           
-            if 80 in io_elements:  # Trip duration
+        elif activity_id == 3:  # Engine OFF / Trip End / Journey Stop
+            # Add comprehensive data for journey stop reporting
+            print(f"DEBUG: Generating addon_info for Engine OFF (Journey Stop) - Activity ID 3")
+            print(f"DEBUG: Available I/O elements: {list(io_elements.keys())}")
+            
+            # Trip distance - I/O 199 (Trip Odometer)
+            if 199 in io_elements:  
+                addon_info["distance_travelled"] = str(io_elements[199])
+                print(f"DEBUG: Trip distance from I/O 199: {io_elements[199]} m")
+            
+            # Total odometer - I/O 16 (Total Odometer) 
+            if 16 in io_elements:
+                addon_info["total_odometer"] = str(io_elements[16])
+                print(f"DEBUG: Total odometer from I/O 16: {io_elements[16]}")
+            
+            # Trip duration - I/O 80 (Trip duration in seconds)
+            if 80 in io_elements:  
                 addon_info["trip_duration"] = str(io_elements[80])
+                print(f"DEBUG: Trip duration from I/O 80: {io_elements[80]} seconds")
            
-            if 241 in io_elements:  # Average speed
-                addon_info["avgSpeed"] = str(io_elements[241])
+            # Average speed during trip - Check multiple possible I/O elements
+            avg_speed_found = False
+            for speed_io in [241, 17, 18]:  # Check different possible average speed I/Os
+                if speed_io in io_elements and not avg_speed_found:  
+                    speed_val = io_elements[speed_io]
+                    # Validate that this looks like a reasonable speed (not an operator code)
+                    if isinstance(speed_val, (int, float)) and 0 <= speed_val <= 200:  # Reasonable speed range
+                        addon_info["avgSpeed"] = str(speed_val)
+                        print(f"DEBUG: Average speed from I/O {speed_io}: {speed_val} km/h")
+                        avg_speed_found = True
            
-            if 242 in io_elements:  # Max speed
-                addon_info["maxSpeed"] = str(io_elements[242])
+            # Max speed during trip - Check multiple possible I/O elements  
+            max_speed_found = False
+            for speed_io in [242, 19]:  # Check different possible max speed I/Os
+                if speed_io in io_elements and not max_speed_found:  
+                    speed_val = io_elements[speed_io]
+                    # Validate that this looks like a reasonable speed (not some other value)
+                    if isinstance(speed_val, (int, float)) and 0 <= speed_val <= 300:  # Reasonable max speed range
+                        addon_info["maxSpeed"] = str(speed_val)
+                        print(f"DEBUG: Max speed from I/O {speed_io}: {speed_val} km/h")
+                        max_speed_found = True
+            
+            # Battery voltage - I/O 67
+            if 67 in io_elements:  
+                addon_info["battery_voltage"] = str(io_elements[67])
+                print(f"DEBUG: Battery voltage from I/O 67: {io_elements[67]} V")
+            
+            # External power voltage - I/O 66
+            if 66 in io_elements:  
+                addon_info["ext_power_voltage"] = str(io_elements[66])
+                print(f"DEBUG: External power voltage from I/O 66: {io_elements[66]} V")
+            
+            # Journey status - I/O 239 (for confirmation)
+            if 239 in io_elements:  
+                addon_info["journey_status"] = str(io_elements[239])
+                print(f"DEBUG: Journey status from I/O 239: {io_elements[239]} (0=Stop, 1=Start)")
+            
+            # Movement status - I/O 240 (for confirmation)
+            if 240 in io_elements:  
+                addon_info["movement_status"] = str(io_elements[240])
+                print(f"DEBUG: Movement status from I/O 240: {io_elements[240]} (0=Off, 1=On)")
+            
+            # GSM signal quality - I/O 21
+            if 21 in io_elements:  
+                addon_info["gsm_signal"] = str(io_elements[21])
+                print(f"DEBUG: GSM signal from I/O 21: {io_elements[21]}")
+            
+            print(f"DEBUG: Final addon_info for Journey Stop: {addon_info}")
+               
+        elif activity_id == 19:  # Engine Stop / Trip Stop (similar to Activity 3 but via I/O 250)
+            print(f"DEBUG: Generating addon_info for Engine Stop (Trip Stop) - Activity ID 19")
+            print(f"DEBUG: Available I/O elements: {list(io_elements.keys())}")
+            
+            # Trip distance - I/O 199 (Trip Odometer)
+            if 199 in io_elements:  
+                addon_info["distance_travelled"] = str(io_elements[199])
+                print(f"DEBUG: Trip distance from I/O 199: {io_elements[199]} m")
+            
+            # Total odometer - I/O 16 (Total Odometer) 
+            if 16 in io_elements:
+                addon_info["total_odometer"] = str(io_elements[16])
+                print(f"DEBUG: Total odometer from I/O 16: {io_elements[16]}")
+            
+            # Trip duration - I/O 80 (Trip duration in seconds)
+            if 80 in io_elements:  
+                addon_info["trip_duration"] = str(io_elements[80])
+                print(f"DEBUG: Trip duration from I/O 80: {io_elements[80]} seconds")
+           
+            # Average and max speeds (with validation)
+            avg_speed_found = False
+            for speed_io in [241, 17, 18]:
+                if speed_io in io_elements and not avg_speed_found:  
+                    speed_val = io_elements[speed_io]
+                    if isinstance(speed_val, (int, float)) and 0 <= speed_val <= 200:
+                        addon_info["avgSpeed"] = str(speed_val)
+                        print(f"DEBUG: Average speed from I/O {speed_io}: {speed_val} km/h")
+                        avg_speed_found = True
+            
+            max_speed_found = False
+            for speed_io in [242, 19]:
+                if speed_io in io_elements and not max_speed_found:  
+                    speed_val = io_elements[speed_io]
+                    if isinstance(speed_val, (int, float)) and 0 <= speed_val <= 300:
+                        addon_info["maxSpeed"] = str(speed_val)
+                        print(f"DEBUG: Max speed from I/O {speed_io}: {speed_val} km/h")
+                        max_speed_found = True
+            
+            # Trip status - I/O 250 (for confirmation)
+            if 250 in io_elements:  
+                addon_info["trip_status"] = str(io_elements[250])
+                print(f"DEBUG: Trip status from I/O 250: {io_elements[250]} (0=Stop, 1=Start)")
+                
+            print(f"DEBUG: Final addon_info for Trip Stop: {addon_info}")
                
         elif activity_id in [9, 10]:  # Power status events
-            if 67 in io_elements:  # External power voltage
-                addon_info["ext_power_voltage"] = str(io_elements[67])
+            if 67 in io_elements:  # Internal battery voltage (backup battery)
+                addon_info["int_battery_voltage"] = str(io_elements[67])
            
-            if 66 in io_elements:  # Internal battery voltage
-                addon_info["int_battery_voltage"] = str(io_elements[66])
+            if 66 in io_elements:  # External power voltage (main vehicle power)
+                addon_info["ext_power_voltage"] = str(io_elements[66])
                
         elif activity_id in [17, 24]:  # Invalid Scan and Regular Ibutton Scan
             # Check multiple possible I/O elements for driver ID
             driver_id = None
+            raw_driver_value = None
             
             print(f"DEBUG: Processing iButton scan event (Activity {activity_id})")
             print(f"DEBUG: Available I/O elements: {list(io_elements.keys())}")
@@ -1698,6 +1849,7 @@ class GPSListener:
             for io_id in [245, 78, 403, 404, 405, 406, 407, 207, 264, 100]:
                 if io_id in io_elements:
                     potential_driver_id = io_elements[io_id]
+                    raw_driver_value = potential_driver_id  # Store the raw value
                     print(f"DEBUG: Found driver ID in I/O {io_id}: '{potential_driver_id}' (type: {type(potential_driver_id)})")
                     
                     # Use ANY value found - don't reject zeros or any other values
@@ -1708,12 +1860,42 @@ class GPSListener:
                     else:
                         print(f"DEBUG: Null driver ID from I/O {io_id}")
                         
-            # Send the actual driver ID found, or empty string if none found
+            # Process the driver ID based on activity type and content
             if driver_id is not None:
-                addon_info["v_driver_identification_no"] = driver_id
-                print(f"DEBUG: Final driver ID for activity {activity_id}: '{driver_id}'")
+                # Check if the raw value indicates an invalid scan
+                is_invalid_scan = False
+                if isinstance(raw_driver_value, str):
+                    clean_raw = raw_driver_value.replace("0x", "").replace("0X", "").upper().strip()
+                    is_invalid_scan = clean_raw in ["FFFFFFFFFFFFFFFF", "0000000000000000"]
+                elif isinstance(raw_driver_value, int):
+                    # Check for patterns like -1 (0xFFFFFFFFFFFFFFFF) or 0
+                    is_invalid_scan = (raw_driver_value == -1 or 
+                                     raw_driver_value == 0 or 
+                                     hex(raw_driver_value).upper().replace("0X", "").replace("-", "F") == "FFFFFFFFFFFFFFFF")
+                
+                if activity_id == 17:  # Invalid Scan
+                    # For invalid scans, we can send the error indicator or empty
+                    if is_invalid_scan:
+                        addon_info["v_driver_identification_no"] = ""  # Empty for invalid
+                        print(f"DEBUG: Invalid scan (Activity 17) with invalid pattern - sending empty string")
+                    else:
+                        # Unexpected: got valid-looking ID on invalid scan event
+                        addon_info["v_driver_identification_no"] = driver_id
+                        print(f"DEBUG: Invalid scan (Activity 17) but got valid-looking ID: '{driver_id}'")
+                        
+                elif activity_id == 24:  # Regular iButton Scan
+                    if is_invalid_scan:
+                        # Device couldn't read the iButton properly - send empty
+                        addon_info["v_driver_identification_no"] = ""
+                        print(f"DEBUG: Regular scan (Activity 24) failed to read iButton - sending empty string")
+                    else:
+                        # Valid scan with actual iButton data
+                        addon_info["v_driver_identification_no"] = driver_id
+                        print(f"DEBUG: Regular scan (Activity 24) with valid iButton ID: '{driver_id}'")
+                        
+                print(f"DEBUG: Final driver ID for activity {activity_id}: '{addon_info.get('v_driver_identification_no', '')}'")
             else:
-                # Send empty string instead of FFFFFFFFFFFFFFFF when no ID is found
+                # No driver ID found in any I/O element
                 addon_info["v_driver_identification_no"] = ""
                 print(f"DEBUG: No driver ID found for activity {activity_id}, sending empty string")
        
@@ -1897,8 +2079,8 @@ class GPSListener:
                         print(f"   Activity ID: {activity_id}")
                         print(f"   Record data: {record.get('latitude')}, {record.get('longitude')}")
                        
-                        # Define activities that don't require valid GPS coordinates
-                        non_gps_activities = [8, 9, 10, 14, 15, 16, 17, 24, 26, 31, 34]  # Panic, Battery, Power, Device events, etc.
+                        # Define activities that don't require valid GPS coordinates or can use fallback
+                        non_gps_activities = [2, 3, 8, 9, 10, 14, 15, 16, 17, 18, 19, 24, 26, 31, 34]  # Engine events, Panic, Battery, Power, Device events, etc.
                        
                         # More inclusive coordinate validation
                         coordinates_valid = False
@@ -1940,6 +2122,18 @@ class GPSListener:
                             latitude = -1.286389
                             longitude = 36.817223
                             print(f"� FINAL FALLBACK: Using Nairobi coordinates ({latitude:.6f}, {longitude:.6f})")
+                       
+                        # Special debugging for Journey Stop events (Activity 3)
+                        if activity_id == 3:
+                            print(f"\n🛑 JOURNEY STOP EVENT DEBUG:")
+                            print(f"   📍 Raw Coordinates: lat={latitude}, lon={longitude}")
+                            print(f"   🌐 Coordinate Valid: {coordinates_valid}")
+                            print(f"   🔌 Available I/O Elements: {list(io_elements.keys())}")
+                            print(f"   📊 Key I/O Values:")
+                            for key in [239, 240, 16, 199, 80, 21, 66, 67]:
+                                if key in io_elements:
+                                    print(f"      I/O {key}: {io_elements[key]}")
+                            print(f"   🚀 Will send to LATRA: YES (Activity 3 is in non_gps_activities)")
                        
                         print(f"📍 FINAL COORDINATES TO SEND: ({latitude:.6f}, {longitude:.6f})")
                        
