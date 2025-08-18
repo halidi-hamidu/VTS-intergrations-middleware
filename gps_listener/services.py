@@ -1511,6 +1511,52 @@ class GPSListener:
        
         print("END OF ACTIVITY DETAILS\n")
 
+    def parse_driver_id(self, hex_value):
+        """Properly parse driver ID/iButton hex values"""
+        try:
+            if not hex_value:
+                print(f"DEBUG: Empty iButton hex value, returning FFFFFFFFFFFFFFFF")
+                return "FFFFFFFFFFFFFFFF"
+            
+            # Remove 0x prefix if present and convert to uppercase
+            clean_hex = str(hex_value).replace("0x", "").replace("0X", "").upper().strip()
+            
+            # Debug logging
+            print(f"DEBUG: Parsing iButton - Raw: '{hex_value}' -> Clean: '{clean_hex}'")
+            
+            # Check if it's empty after cleaning
+            if not clean_hex:
+                print(f"DEBUG: Empty after cleaning, returning FFFFFFFFFFFFFFFF")
+                return "FFFFFFFFFFFFFFFF"
+            
+            # Validate hex characters
+            if not all(c in '0123456789ABCDEF' for c in clean_hex):
+                print(f"DEBUG: Invalid hex characters in iButton value: '{clean_hex}', returning FFFFFFFFFFFFFFFF")
+                return "FFFFFFFFFFFFFFFF"
+            
+            # Pad to 16 characters (8 bytes) if needed
+            if len(clean_hex) < 16:
+                clean_hex = clean_hex.zfill(16)
+                print(f"DEBUG: Padded iButton value to 16 chars: '{clean_hex}'")
+            elif len(clean_hex) > 16:
+                # Take the last 16 characters if too long
+                clean_hex = clean_hex[-16:]
+                print(f"DEBUG: Truncated iButton value to 16 chars: '{clean_hex}'")
+            
+            # Check for obvious invalid values (all zeros or all Fs)
+            if clean_hex == "0000000000000000":
+                print(f"DEBUG: All zeros detected, returning FFFFFFFFFFFFFFFF")
+                return "FFFFFFFFFFFFFFFF"
+            
+            # Don't reject all F's because that might be a valid iButton ID
+            # Just return the cleaned hex value
+            print(f"DEBUG: Valid iButton ID found: '{clean_hex}'")
+            return clean_hex
+            
+        except Exception as e:
+            print(f"DEBUG: Error parsing iButton hex '{hex_value}': {e}, returning FFFFFFFFFFFFFFFF")
+            return "FFFFFFFFFFFFFFFF"
+
     def sorting_hat(self, key, value):
         """Parse I/O element based on its ID"""
         parse_functions = {
@@ -1520,7 +1566,16 @@ class GPSListener:
             241: lambda x: float(decimal.Decimal(self.safe_hex_to_int(x)) * decimal.Decimal('0.1')),
             242: lambda x: float(decimal.Decimal(self.safe_hex_to_int(x)) * decimal.Decimal('0.1')),
             11: lambda x: self.safe_hex_to_int(x),
-            245: lambda x: x if x else "FFFFFFFFFFFFFFFF",  # Keep raw hex for driver ID
+            245: lambda x: self.parse_driver_id(x),  # Use dedicated parser for driver ID
+            78: lambda x: self.parse_driver_id(x),   # iButton ID
+            403: lambda x: self.parse_driver_id(x),  # Driver 1 ID  
+            404: lambda x: self.parse_driver_id(x),  # Driver 2 ID
+            405: lambda x: self.parse_driver_id(x),  # Driver 3 ID
+            406: lambda x: self.parse_driver_id(x),  # Driver 4 ID
+            407: lambda x: self.parse_driver_id(x),  # Driver 5 ID
+            207: lambda x: self.parse_driver_id(x),  # RFID Tag
+            264: lambda x: self.parse_driver_id(x),  # Barcode ID
+            100: lambda x: self.parse_driver_id(x),  # Magnetic Card ID
             66: lambda x: float(decimal.Decimal(self.safe_hex_to_int(x)) * decimal.Decimal('0.01')),
             67: lambda x: float(decimal.Decimal(self.safe_hex_to_int(x)) * decimal.Decimal('0.01')),
             16: lambda x: self.safe_hex_to_int(x),
@@ -1603,21 +1658,34 @@ class GPSListener:
                 addon_info["int_battery_voltage"] = str(io_elements[66])
                
         elif activity_id in [17, 24]:  # Invalid Scan and Regular Ibutton Scan
-            if 245 in io_elements:  # Driver identification
-                driver_id = io_elements[245]
-                # Convert to 16-digit hex string if needed
-                if isinstance(driver_id, str) and driver_id.startswith('0x'):
-                    driver_id = driver_id[2:].upper().zfill(16)
-                elif isinstance(driver_id, int):
-                    driver_id = f"{driver_id:016X}"
-                else:
-                    driver_id = str(driver_id).upper().zfill(16)
-                   
-                # Use FFFFFFFFFFFFFFFF when no valid identification detected
-                if not driver_id or driver_id == "0000000000000000":
-                    driver_id = "FFFFFFFFFFFFFFFF"
-                   
+            # Check multiple possible I/O elements for driver ID
+            driver_id = None
+            
+            print(f"DEBUG: Processing iButton scan event (Activity {activity_id})")
+            print(f"DEBUG: Available I/O elements: {list(io_elements.keys())}")
+            
+            # Priority order: I/O 245 (Driver ID), I/O 78 (iButton), then others
+            for io_id in [245, 78, 403, 404, 405, 406, 407, 207, 264, 100]:
+                if io_id in io_elements:
+                    potential_driver_id = io_elements[io_id]
+                    print(f"DEBUG: Found driver ID in I/O {io_id}: '{potential_driver_id}' (type: {type(potential_driver_id)})")
+                    
+                    # Check if it's a valid driver ID (not the invalid placeholder)
+                    if potential_driver_id and str(potential_driver_id) != "FFFFFFFFFFFFFFFF":
+                        driver_id = str(potential_driver_id)
+                        print(f"DEBUG: Using valid driver ID: '{driver_id}' from I/O {io_id}")
+                        break
+                    else:
+                        print(f"DEBUG: Skipping invalid driver ID from I/O {io_id}: '{potential_driver_id}'")
+                        
+            # If we found a valid driver ID, use it; otherwise use the invalid placeholder
+            if driver_id and driver_id != "FFFFFFFFFFFFFFFF" and driver_id != "0000000000000000":
                 addon_info["v_driver_identification_no"] = driver_id
+                print(f"DEBUG: Final driver ID for activity {activity_id}: '{driver_id}'")
+            else:
+                # Use FFFFFFFFFFFFFFFF only when no valid ID is found
+                addon_info["v_driver_identification_no"] = "FFFFFFFFFFFFFFFF"
+                print(f"DEBUG: No valid driver ID found for activity {activity_id}, using FFFFFFFFFFFFFFFF")
        
         return addon_info if addon_info else None
 
@@ -1749,6 +1817,19 @@ class GPSListener:
                         if activity_id is None:
                             activity_id = 1  # Ultimate fallback to Movement/Logging
                             print(f"DEBUG: Ultimate fallback - Using activity ID: {activity_id}")
+                       
+                        # Special debugging for iButton events
+                        if activity_id in [17, 24]:
+                            print(f"\n🔑 IBUTTON EVENT DETECTED!")
+                            print(f"   Activity ID: {activity_id} ({'Invalid Scan' if activity_id == 17 else 'Regular iButton Scan'})")
+                            print(f"   Activity Source: {activity_source}")
+                            print(f"   Available I/O Elements: {list(io_elements.keys())}")
+                            
+                            # Check all possible driver ID sources
+                            for io_id in [245, 78, 403, 404, 405, 406, 407, 207, 264, 100]:
+                                if io_id in io_elements:
+                                    raw_value = io_elements[io_id]
+                                    print(f"   📱 I/O {io_id}: '{raw_value}' (type: {type(raw_value)})")
                        
                         print(f"DEBUG: Final LATRA Activity ID for transmission: {activity_id} (source: {activity_source})")
                        
