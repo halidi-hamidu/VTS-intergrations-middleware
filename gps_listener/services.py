@@ -758,8 +758,14 @@ class GPSListener:
                             key = avl_data_start[data_field_position:data_field_position+data_step]
                             data_field_position += data_step
                             value = avl_data_start[data_field_position:data_field_position+2]
-                            io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                self.safe_hex_to_int(key),
+                            
+                            # Special debugging for iButton-related elements
+                            key_int = self.safe_hex_to_int(key)
+                            if key_int in [245, 78, 403, 404, 405, 406, 407, 207, 264, 100]:
+                                print(f"🔑 IBUTTON I/O (1-byte) DETECTED - Key: {key_int}, Raw Hex Value: '{value}'")
+                            
+                            io_elements[key_int] = self.sorting_hat(
+                                key_int,
                                 value
                             )
                             data_field_position += 2
@@ -796,8 +802,14 @@ class GPSListener:
                             key = avl_data_start[data_field_position:data_field_position+data_step]
                             data_field_position += data_step
                             value = avl_data_start[data_field_position:data_field_position+8]
-                            io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                self.safe_hex_to_int(key),
+                            
+                            # Special debugging for iButton-related elements
+                            key_int = self.safe_hex_to_int(key)
+                            if key_int in [245, 78, 403, 404, 405, 406, 407, 207, 264, 100]:
+                                print(f"🔑 IBUTTON I/O (4-byte) DETECTED - Key: {key_int}, Raw Hex Value: '{value}'")
+                            
+                            io_elements[key_int] = self.sorting_hat(
+                                key_int,
                                 value
                             )
                             data_field_position += 8
@@ -815,8 +827,14 @@ class GPSListener:
                             key = avl_data_start[data_field_position:data_field_position+data_step]
                             data_field_position += data_step
                             value = avl_data_start[data_field_position:data_field_position+16]
-                            io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                self.safe_hex_to_int(key),
+                            
+                            # Special debugging for iButton-related elements
+                            key_int = self.safe_hex_to_int(key)
+                            if key_int in [245, 78, 403, 404, 405, 406, 407, 207, 264, 100]:
+                                print(f"🔑 IBUTTON I/O DETECTED - Key: {key_int}, Raw Hex Value: '{value}'")
+                            
+                            io_elements[key_int] = self.sorting_hat(
+                                key_int,
                                 value
                             )
                             data_field_position += 16
@@ -837,8 +855,14 @@ class GPSListener:
                                 value_length = avl_data_start[data_field_position:data_field_position+4]
                                 data_field_position += 4
                                 value = avl_data_start[data_field_position:data_field_position+(2 * self.safe_hex_to_int(value_length))]
-                                io_elements[self.safe_hex_to_int(key)] = self.sorting_hat(
-                                    self.safe_hex_to_int(key),
+                                
+                                # Special debugging for iButton-related elements
+                                key_int = self.safe_hex_to_int(key)
+                                if key_int in [245, 78, 403, 404, 405, 406, 407, 207, 264, 100]:
+                                    print(f"🔑 IBUTTON I/O (X-byte) DETECTED - Key: {key_int}, Value Length: {value_length}, Raw Hex Value: '{value}'")
+                                
+                                io_elements[key_int] = self.sorting_hat(
+                                    key_int,
                                     value
                                 )
                                 data_field_position += len(value)
@@ -1518,8 +1542,14 @@ class GPSListener:
                 print(f"DEBUG: Empty iButton hex value, returning FFFFFFFFFFFFFFFF")
                 return "FFFFFFFFFFFFFFFF"
             
-            # Remove 0x prefix if present and convert to uppercase
-            clean_hex = str(hex_value).replace("0x", "").replace("0X", "").upper().strip()
+            # Convert to string and handle different input types
+            if isinstance(hex_value, (int, float)):
+                # If it's a number, convert to hex string
+                clean_hex = f"{int(hex_value):X}".upper()
+                print(f"DEBUG: Converted number {hex_value} to hex: {clean_hex}")
+            else:
+                # Remove 0x prefix if present and convert to uppercase
+                clean_hex = str(hex_value).replace("0x", "").replace("0X", "").upper().strip()
             
             # Debug logging
             print(f"DEBUG: Parsing iButton - Raw: '{hex_value}' -> Clean: '{clean_hex}'")
@@ -1543,13 +1573,12 @@ class GPSListener:
                 clean_hex = clean_hex[-16:]
                 print(f"DEBUG: Truncated iButton value to 16 chars: '{clean_hex}'")
             
-            # Check for obvious invalid values (all zeros or all Fs)
+            # Check for obvious invalid values (all zeros)
             if clean_hex == "0000000000000000":
                 print(f"DEBUG: All zeros detected, returning FFFFFFFFFFFFFFFF")
                 return "FFFFFFFFFFFFFFFF"
             
-            # Don't reject all F's because that might be a valid iButton ID
-            # Just return the cleaned hex value
+            # Return the cleaned hex value - DON'T reject all F's as they might be valid
             print(f"DEBUG: Valid iButton ID found: '{clean_hex}'")
             return clean_hex
             
@@ -1671,15 +1700,21 @@ class GPSListener:
                     print(f"DEBUG: Found driver ID in I/O {io_id}: '{potential_driver_id}' (type: {type(potential_driver_id)})")
                     
                     # Check if it's a valid driver ID (not the invalid placeholder)
-                    if potential_driver_id and str(potential_driver_id) != "FFFFFFFFFFFFFFFF":
-                        driver_id = str(potential_driver_id)
-                        print(f"DEBUG: Using valid driver ID: '{driver_id}' from I/O {io_id}")
-                        break
+                    # Don't reject zero values immediately - they might be valid
+                    if potential_driver_id is not None:
+                        driver_id_str = str(potential_driver_id)
+                        # Only reject if it's explicitly the invalid placeholder
+                        if driver_id_str != "FFFFFFFFFFFFFFFF":
+                            driver_id = driver_id_str
+                            print(f"DEBUG: Using driver ID: '{driver_id}' from I/O {io_id}")
+                            break
+                        else:
+                            print(f"DEBUG: Skipping invalid placeholder from I/O {io_id}: '{potential_driver_id}'")
                     else:
-                        print(f"DEBUG: Skipping invalid driver ID from I/O {io_id}: '{potential_driver_id}'")
+                        print(f"DEBUG: Null driver ID from I/O {io_id}")
                         
             # If we found a valid driver ID, use it; otherwise use the invalid placeholder
-            if driver_id and driver_id != "FFFFFFFFFFFFFFFF" and driver_id != "0000000000000000":
+            if driver_id and driver_id != "FFFFFFFFFFFFFFFF":
                 addon_info["v_driver_identification_no"] = driver_id
                 print(f"DEBUG: Final driver ID for activity {activity_id}: '{driver_id}'")
             else:
