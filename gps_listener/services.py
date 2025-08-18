@@ -1144,10 +1144,8 @@ class GPSListener:
                             # Check I/O 245 (Driver ID) if no I/O 78 or if I/O 78 was invalid
                             elif 245 in io_elements:
                                 driver_id = io_elements[245]
-                                # Check if it's a valid driver ID (not empty, not all zeros, not FFFFFFFF)
-                                if (driver_id and str(driver_id) != "0" and
-                                    str(driver_id) != "0x0000000000000000" and
-                                    str(driver_id).upper() != "FFFFFFFFFFFFFFFF"):
+                                # Accept ANY driver ID value - don't filter out zeros or other values
+                                if driver_id is not None:
                                     detected_activity = 24  # LATRA Activity ID 24 (Ibutton Scan Regular)
                                     record["activity"] = f"24 - Ibutton Scan (Regular) - Driver ID: {driver_id}"
                                     print(f"👤 DRIVER ID SCANNED (I/O 245): {driver_id} -> LATRA Activity 24")
@@ -1536,28 +1534,25 @@ class GPSListener:
         print("END OF ACTIVITY DETAILS\n")
 
     def parse_driver_id(self, hex_value):
-        """Properly parse driver ID/iButton hex values"""
+        """Parse driver ID/iButton hex values - send as-is without forcing FFFFFFFFFFFFFFFF"""
         try:
             print(f"🔍 PARSE_DRIVER_ID CALLED with: '{hex_value}' (type: {type(hex_value)})")
             
             if hex_value is None:
-                print(f"DEBUG: None iButton hex value, returning FFFFFFFFFFFFFFFF")
-                return "FFFFFFFFFFFFFFFF"
+                print(f"DEBUG: None iButton hex value, returning empty string")
+                return ""
             
             # Convert to string and handle different input types
             if isinstance(hex_value, (int, float)):
-                if hex_value == 0:
-                    print(f"DEBUG: Zero numeric value, returning FFFFFFFFFFFFFFFF")
-                    return "FFFFFFFFFFFFFFFF"
-                # If it's a number, convert to hex string
+                # If it's a number, convert to hex string - KEEP ZEROS!
                 clean_hex = f"{int(hex_value):X}".upper()
                 print(f"DEBUG: Converted number {hex_value} to hex: {clean_hex}")
             else:
                 # Handle string input
                 str_value = str(hex_value).strip()
-                if not str_value or str_value == "0":
-                    print(f"DEBUG: Empty or zero string value, returning FFFFFFFFFFFFFFFF")
-                    return "FFFFFFFFFFFFFFFF"
+                if not str_value:
+                    print(f"DEBUG: Empty string value, returning empty")
+                    return ""
                 
                 # Remove 0x prefix if present and convert to uppercase
                 clean_hex = str_value.replace("0x", "").replace("0X", "").upper().strip()
@@ -1567,13 +1562,13 @@ class GPSListener:
             
             # Check if it's empty after cleaning
             if not clean_hex:
-                print(f"DEBUG: Empty after cleaning, returning FFFFFFFFFFFFFFFF")
-                return "FFFFFFFFFFFFFFFF"
+                print(f"DEBUG: Empty after cleaning, returning empty")
+                return ""
             
             # Validate hex characters
             if not all(c in '0123456789ABCDEF' for c in clean_hex):
-                print(f"DEBUG: Invalid hex characters in iButton value: '{clean_hex}', returning FFFFFFFFFFFFFFFF")
-                return "FFFFFFFFFFFFFFFF"
+                print(f"DEBUG: Invalid hex characters in iButton value: '{clean_hex}', returning as-is")
+                return str(hex_value)  # Return original value if not valid hex
             
             # Pad to 16 characters (8 bytes) if needed
             if len(clean_hex) < 16:
@@ -1584,18 +1579,13 @@ class GPSListener:
                 clean_hex = clean_hex[-16:]
                 print(f"DEBUG: Truncated iButton value to 16 chars: '{clean_hex}'")
             
-            # Check for obvious invalid values (all zeros)
-            if clean_hex == "0000000000000000":
-                print(f"DEBUG: All zeros detected, returning FFFFFFFFFFFFFFFF")
-                return "FFFFFFFFFFFFFFFF"
-            
-            # Return the cleaned hex value - DON'T reject all F's as they might be valid
-            print(f"DEBUG: ✅ Valid iButton ID found: '{clean_hex}'")
+            # SEND AS-IS - Don't reject any values including all zeros!
+            print(f"DEBUG: ✅ Sending iButton ID as-is: '{clean_hex}'")
             return clean_hex
             
         except Exception as e:
-            print(f"DEBUG: Error parsing iButton hex '{hex_value}': {e}, returning FFFFFFFFFFFFFFFF")
-            return "FFFFFFFFFFFFFFFF"
+            print(f"DEBUG: Error parsing iButton hex '{hex_value}': {e}, returning original value")
+            return str(hex_value) if hex_value is not None else ""
 
     def sorting_hat(self, key, value):
         """Parse I/O element based on its ID"""
@@ -1710,28 +1700,22 @@ class GPSListener:
                     potential_driver_id = io_elements[io_id]
                     print(f"DEBUG: Found driver ID in I/O {io_id}: '{potential_driver_id}' (type: {type(potential_driver_id)})")
                     
-                    # Check if it's a valid driver ID (not the invalid placeholder)
-                    # Don't reject zero values immediately - they might be valid
+                    # Use ANY value found - don't reject zeros or any other values
                     if potential_driver_id is not None:
-                        driver_id_str = str(potential_driver_id)
-                        # Only reject if it's explicitly the invalid placeholder
-                        if driver_id_str != "FFFFFFFFFFFFFFFF":
-                            driver_id = driver_id_str
-                            print(f"DEBUG: Using driver ID: '{driver_id}' from I/O {io_id}")
-                            break
-                        else:
-                            print(f"DEBUG: Skipping invalid placeholder from I/O {io_id}: '{potential_driver_id}'")
+                        driver_id = str(potential_driver_id)
+                        print(f"DEBUG: Using driver ID: '{driver_id}' from I/O {io_id}")
+                        break
                     else:
                         print(f"DEBUG: Null driver ID from I/O {io_id}")
                         
-            # If we found a valid driver ID, use it; otherwise use the invalid placeholder
-            if driver_id and driver_id != "FFFFFFFFFFFFFFFF":
+            # Send the actual driver ID found, or empty string if none found
+            if driver_id is not None:
                 addon_info["v_driver_identification_no"] = driver_id
                 print(f"DEBUG: Final driver ID for activity {activity_id}: '{driver_id}'")
             else:
-                # Use FFFFFFFFFFFFFFFF only when no valid ID is found
-                addon_info["v_driver_identification_no"] = "FFFFFFFFFFFFFFFF"
-                print(f"DEBUG: No valid driver ID found for activity {activity_id}, using FFFFFFFFFFFFFFFF")
+                # Send empty string instead of FFFFFFFFFFFFFFFF when no ID is found
+                addon_info["v_driver_identification_no"] = ""
+                print(f"DEBUG: No driver ID found for activity {activity_id}, sending empty string")
        
         return addon_info if addon_info else None
 
