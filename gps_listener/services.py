@@ -142,7 +142,7 @@ ACTIVITY_CODES = {
    
     # Digital Input/Output Events
     1: "39",    # Digital Input 1 -> Door Open/Close
-    2: "39",    # Digital Input 2 -> Door Open/Close  
+    2: "8",     # Digital Input 2 -> Panic Button (Driver)
     3: "39",    # Digital Input 3 -> Door Open/Close
     179: "39",  # Digital Output 1 -> Door Open/Close
     180: "39",  # Digital Output 2 -> Door Open/Close
@@ -1188,6 +1188,14 @@ class GPSListener:
                                     record["activity"] = f"17 - Invalid Scan (Invalid driver ID pattern: {driver_id})"
                                     print(f"❌ INVALID DRIVER ID SCAN (I/O 245): {driver_id} -> LATRA Activity 17")
                        
+                        # Check for panic button (I/O 2 - Digital Input 2 for Driver Panic)
+                        if not detected_activity and 2 in io_elements:
+                            panic_state = io_elements[2]
+                            if panic_state == 1:
+                                detected_activity = 8  # LATRA Activity ID 8 (Panic Button Driver)
+                                record["activity"] = "8 - Panic Button (Driver) via Digital Input 2"
+                                print(f"🆘 DRIVER PANIC BUTTON DETECTED (I/O 2=1) -> LATRA Activity 8")
+                       
                         # Check for panic button (I/O 200 - can be panic/emergency)
                         if not detected_activity and 200 in io_elements:
                             panic_state = io_elements[200]
@@ -1400,7 +1408,10 @@ class GPSListener:
             else:  # Even = Exit
                 return f"Leave Boundary (Zone {zone_num}: {io_value})"
                
-        elif io_id in [1, 2, 3, 379]:  # Digital inputs
+        elif io_id == 2:  # Digital Input 2 - Driver Panic Button
+            return f"Panic Button (Driver) (Input {io_id}: {io_value})"
+               
+        elif io_id in [1, 3, 379]:  # Other digital inputs
             return f"Door Open/Close (Input {io_id}: {io_value})"
            
         elif io_id in [179, 180, 380]:  # Digital outputs
@@ -1836,6 +1847,32 @@ class GPSListener:
            
             if 66 in io_elements:  # External power voltage (main vehicle power)
                 addon_info["ext_power_voltage"] = str(io_elements[66])
+               
+        elif activity_id == 8:  # Panic Button (Driver) events
+            print(f"DEBUG: Generating addon_info for Panic Button (Driver) - Activity ID 8")
+            print(f"DEBUG: Available I/O elements: {list(io_elements.keys())}")
+            
+            # Panic button source information
+            if 2 in io_elements:  # Digital Input 2 (main panic button)
+                addon_info["panic_source"] = "Digital Input 2"
+                addon_info["panic_state"] = str(io_elements[2])
+                print(f"DEBUG: Panic button from I/O 2: {io_elements[2]}")
+            elif 200 in io_elements:  # Alternative panic button I/O
+                addon_info["panic_source"] = "I/O Element 200"
+                addon_info["panic_state"] = str(io_elements[200])
+                print(f"DEBUG: Panic button from I/O 200: {io_elements[200]}")
+            
+            # Location information for emergency response
+            if 21 in io_elements:  # GSM signal quality
+                addon_info["gsm_signal"] = str(io_elements[21])
+                print(f"DEBUG: GSM signal during panic: {io_elements[21]}")
+            
+            # Battery status during emergency
+            if 67 in io_elements:  # Internal battery voltage
+                addon_info["battery_voltage"] = str(io_elements[67])
+                print(f"DEBUG: Battery voltage during panic: {io_elements[67]} V")
+            
+            print(f"DEBUG: Final addon_info for Panic Button: {addon_info}")
                
         elif activity_id in [17, 24]:  # Invalid Scan and Regular Ibutton Scan
             # Check multiple possible I/O elements for driver ID
