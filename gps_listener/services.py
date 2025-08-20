@@ -1188,6 +1188,26 @@ class GPSListener:
                                     record["activity"] = f"17 - Invalid Scan (Invalid driver ID pattern: {driver_id})"
                                     print(f"❌ INVALID DRIVER ID SCAN (I/O 245): {driver_id} -> LATRA Activity 17")
                        
+                        # Check for harsh driving events (I/O 253 - Green Driving Events)
+                        if not detected_activity and 253 in io_elements:
+                            green_driving_value = io_elements[253]
+                            print(f"🚗 GREEN DRIVING EVENT DETECTED: I/O 253 = {green_driving_value}")
+                            
+                            if green_driving_value == 1:
+                                detected_activity = 7  # LATRA Activity ID 7 (Harsh Acceleration)
+                                record["activity"] = f"7 - Hash Acceleration (I/O 253: {green_driving_value})"
+                                print(f"⚡ HARSH ACCELERATION DETECTED: I/O 253 = {green_driving_value} -> LATRA Activity 7")
+                            elif green_driving_value == 2:
+                                detected_activity = 5  # LATRA Activity ID 5 (Harsh Braking)
+                                record["activity"] = f"5 - Hash Braking (I/O 253: {green_driving_value})"
+                                print(f"🛑 HARSH BRAKING DETECTED: I/O 253 = {green_driving_value} -> LATRA Activity 5")
+                            elif green_driving_value == 3:
+                                detected_activity = 6  # LATRA Activity ID 6 (Harsh Turning)
+                                record["activity"] = f"6 - Hash Turning (I/O 253: {green_driving_value})"
+                                print(f"↪️ HARSH TURNING DETECTED: I/O 253 = {green_driving_value} -> LATRA Activity 6")
+                            else:
+                                print(f"DEBUG: I/O 253 present but unknown value: {green_driving_value}")
+                       
                         # Check for panic button (I/O 2 - Digital Input 2 for Driver Panic)
                         if not detected_activity and 2 in io_elements:
                             panic_state = io_elements[2]
@@ -1379,6 +1399,16 @@ class GPSListener:
                 return "Movement/Logging (Movement STOP)"
             else:
                 return f"Movement Event (Value: {io_value})"
+               
+        elif io_id == 253:  # Green Driving Events (Harsh Driving)
+            if io_value == 1:
+                return "Hash Acceleration (Green Driving)"
+            elif io_value == 2:
+                return "Hash Braking (Green Driving)"
+            elif io_value == 3:
+                return "Hash Turning (Green Driving)"
+            else:
+                return f"Green Driving Event (Value: {io_value})"
                
         elif io_id in [67, 113]:  # Battery voltage/level
             return f"Internal Battery Low (Battery: {io_value})"
@@ -1728,26 +1758,28 @@ class GPSListener:
                 addon_info["v_driver_identification_no"] = driver_id
                
         elif activity_id == 3:  # Engine OFF / Trip End / Journey Stop
-            # Add comprehensive data for journey stop reporting
+            # Add comprehensive data for journey stop reporting - EXACTLY LIKE PHP VERSION
             print(f"DEBUG: Generating addon_info for Engine OFF (Journey Stop) - Activity ID 3")
             print(f"DEBUG: Available I/O elements: {list(io_elements.keys())}")
             
-            # Trip distance - I/O 199 (Trip Odometer)
+            # PRIMARY TRIP DATA - Matching PHP getTripSummary() function
+            
+            # Trip distance - I/O 199 (Trip Odometer) - CONVERT TO KM like PHP
             if 199 in io_elements:  
-                addon_info["distance_travelled"] = str(io_elements[199])
-                print(f"DEBUG: Trip distance from I/O 199: {io_elements[199]} m")
+                trip_distance_meters = io_elements[199]
+                trip_distance_km = trip_distance_meters / 1000 if trip_distance_meters else 0  # Convert to km like PHP
+                addon_info["distance_travelled"] = str(trip_distance_km)
+                print(f"DEBUG: Trip distance from I/O 199: {trip_distance_meters} m = {trip_distance_km} km")
             
-            # Total odometer - I/O 16 (Total Odometer) 
-            if 16 in io_elements:
-                addon_info["total_odometer"] = str(io_elements[16])
-                print(f"DEBUG: Total odometer from I/O 16: {io_elements[16]}")
-            
-            # Trip duration - I/O 80 (Trip duration in seconds)
+            # Trip duration - Calculate like PHP (in minutes, not seconds)
             if 80 in io_elements:  
-                addon_info["trip_duration"] = str(io_elements[80])
-                print(f"DEBUG: Trip duration from I/O 80: {io_elements[80]} seconds")
-           
-            # Average speed during trip - Check multiple possible I/O elements
+                duration_seconds = io_elements[80]
+                duration_minutes = round(duration_seconds / 60) if duration_seconds else 1  # Convert to minutes like PHP
+                duration_minutes = max(1, duration_minutes)  # Minimum 1 minute like PHP
+                addon_info["trip_duration"] = str(duration_minutes)
+                print(f"DEBUG: Trip duration from I/O 80: {duration_seconds} seconds = {duration_minutes} minutes")
+            
+            # Average speed during trip - Use device calculated average if available
             avg_speed_found = False
             for speed_io in [241, 17, 18]:  # Check different possible average speed I/Os
                 if speed_io in io_elements and not avg_speed_found:  
@@ -1758,7 +1790,7 @@ class GPSListener:
                         print(f"DEBUG: Average speed from I/O {speed_io}: {speed_val} km/h")
                         avg_speed_found = True
            
-            # Max speed during trip - Check multiple possible I/O elements  
+            # Max speed during trip - Use device calculated max speed if available
             max_speed_found = False
             for speed_io in [242, 19]:  # Check different possible max speed I/Os
                 if speed_io in io_elements and not max_speed_found:  
@@ -1769,32 +1801,147 @@ class GPSListener:
                         print(f"DEBUG: Max speed from I/O {speed_io}: {speed_val} km/h")
                         max_speed_found = True
             
-            # Battery voltage - I/O 67
-            if 67 in io_elements:  
-                addon_info["battery_voltage"] = str(io_elements[67])
-                print(f"DEBUG: Battery voltage from I/O 67: {io_elements[67]} V")
+            # VOLTAGE DATA - Matching PHP getVoltages() function
             
-            # External power voltage - I/O 66
+            # External power voltage - I/O 66 - Like PHP $externalVoltageId = 66
             if 66 in io_elements:  
-                addon_info["ext_power_voltage"] = str(io_elements[66])
-                print(f"DEBUG: External power voltage from I/O 66: {io_elements[66]} V")
+                ext_voltage = io_elements[66]
+                addon_info["ext_power_voltage"] = str(ext_voltage) if ext_voltage else "0"
+                print(f"DEBUG: External power voltage from I/O 66: {ext_voltage} V")
             
-            # Journey status - I/O 239 (for confirmation)
+            # Battery voltage - I/O 67 - Like PHP $batteryVoltageId = 67  
+            if 67 in io_elements:  
+                battery_voltage = io_elements[67]
+                addon_info["int_battery_voltage"] = str(battery_voltage) if battery_voltage else "0"
+                print(f"DEBUG: Internal battery voltage from I/O 67: {battery_voltage} V")
+            
+            # External power connection status - I/O 252 - Like PHP EVENT_EXTERNAL_POWER = 252
+            if 252 in io_elements:  
+                ext_power_status = io_elements[252]
+                addon_info["ext_power_status"] = str(ext_power_status)
+                print(f"DEBUG: External power status from I/O 252: {ext_power_status} (1=disconnected)")
+            
+            # Battery level - I/O 113 - Like PHP EVENT_BATTERY_LOW = 113
+            if 113 in io_elements:  
+                battery_level = io_elements[113]
+                addon_info["battery_level"] = str(battery_level)
+                print(f"DEBUG: Battery level from I/O 113: {battery_level}")
+            
+            # Fuel level - I/O 9 - Like PHP EVENT_FUEL = 9
+            if 9 in io_elements and "analog_input_1" not in addon_info:  # Prioritize fuel over generic analog
+                fuel_level = io_elements[9]
+                addon_info["fuel_level"] = str(fuel_level)
+                print(f"DEBUG: Fuel level from I/O 9: {fuel_level}")
+            elif 9 in io_elements:  # If already used as analog, still capture as fuel reference
+                addon_info["fuel_level_alt"] = str(io_elements[9])
+                print(f"DEBUG: Fuel level (alt) from I/O 9: {io_elements[9]}")
+            
+            # DRIVER IDENTIFICATION - Like PHP iButton collection
+            
+            # Driver iButton - I/O 78 - Like PHP $ibuttonId = self::EVENT_IBUTTON (78)
+            driver_found = False
+            for driver_io in [78, 245, 403, 404, 405, 406, 407]:  # Priority to I/O 78 like PHP
+                if driver_io in io_elements and not driver_found:
+                    driver_id = io_elements[driver_io]
+                    if driver_id and str(driver_id).strip() not in ["", "0", "FFFFFFFFFFFFFFFF", "0000000000000000"]:
+                        # Format like PHP: pad to 16 chars if needed
+                        if isinstance(driver_id, str) and len(driver_id) < 16:
+                            driver_id = driver_id.zfill(16)  # Pad with zeros like PHP
+                        addon_info["v_driver_identification_no"] = str(driver_id)
+                        print(f"DEBUG: Driver ID at journey stop from I/O {driver_io}: {driver_id}")
+                        driver_found = True
+                        break
+            
+            # CONFIRMATION/STATUS DATA - Additional context
+            
+            # Journey status - I/O 239 (for confirmation that ignition is OFF)
             if 239 in io_elements:  
                 addon_info["journey_status"] = str(io_elements[239])
                 print(f"DEBUG: Journey status from I/O 239: {io_elements[239]} (0=Stop, 1=Start)")
             
-            # Movement status - I/O 240 (for confirmation)
+            # Movement status - I/O 240 (for confirmation that movement stopped)
             if 240 in io_elements:  
                 addon_info["movement_status"] = str(io_elements[240])
                 print(f"DEBUG: Movement status from I/O 240: {io_elements[240]} (0=Off, 1=On)")
+            
+            # Total odometer - I/O 16 (Total Odometer) - Additional tracking
+            if 16 in io_elements and "distance_travelled" not in addon_info:  # Only if not used for trip distance
+                addon_info["total_odometer"] = str(io_elements[16])
+                print(f"DEBUG: Total odometer from I/O 16: {io_elements[16]}")
+            
+            # ENGINE AND OPERATIONAL DATA
+            
+            # Engine hours/runtime - I/O 15 (Engine runtime) 
+            if 15 in io_elements:  
+                addon_info["engine_hours"] = str(io_elements[15])
+                print(f"DEBUG: Engine hours from I/O 15: {io_elements[15]}")
+                
+            # Idle time during trip - I/O 11 (Total idle time) - Important for trip summary
+            if 11 in io_elements:  
+                addon_info["idleTime"] = str(io_elements[11])  # Use same key name as PHP
+                print(f"DEBUG: Idle time from I/O 11: {io_elements[11]} seconds")
+            
+            # COMMUNICATION QUALITY DATA
             
             # GSM signal quality - I/O 21
             if 21 in io_elements:  
                 addon_info["gsm_signal"] = str(io_elements[21])
                 print(f"DEBUG: GSM signal from I/O 21: {io_elements[21]}")
             
-            print(f"DEBUG: Final addon_info for Journey Stop: {addon_info}")
+            if 205 in io_elements:  # GSM cell ID - Like PHP $cellId
+                addon_info["cell_id"] = str(io_elements[205])
+                print(f"DEBUG: GSM cell ID from I/O 205: {io_elements[205]}")
+            
+            if 206 in io_elements:  # GSM area code - Like PHP $lac
+                addon_info["area_code"] = str(io_elements[206])
+                print(f"DEBUG: GSM area code from I/O 206: {io_elements[206]}")
+            
+            # GPS/GNSS quality indicators - Like PHP HDOP
+            if 182 in io_elements:  # HDOP (GPS quality) 
+                addon_info["hdop"] = str(io_elements[182])
+                print(f"DEBUG: HDOP from I/O 182: {io_elements[182]}")
+            
+            if 69 in io_elements:  # GNSS status
+                addon_info["gnss_status"] = str(io_elements[69])
+                print(f"DEBUG: GNSS status from I/O 69: {io_elements[69]}")
+            
+            # VEHICLE HARDWARE STATUS
+            
+            # Digital inputs status (doors, ignition accessories) - Like PHP digital outputs
+            for digital_io in [1, 2, 3, 4]:  # Common digital inputs
+                if digital_io in io_elements:
+                    addon_info[f"digital_input_{digital_io}"] = str(io_elements[digital_io])
+                    print(f"DEBUG: Digital input {digital_io} from I/O {digital_io}: {io_elements[digital_io]}")
+            
+            # Digital outputs status - Like PHP EVENT_DIGITAL_OUTPUT_2 = 180
+            for output_io in [179, 180, 181, 182]:  # Common digital outputs, including 180 from PHP
+                if output_io in io_elements:
+                    addon_info[f"digital_output_{output_io}"] = str(io_elements[output_io])
+                    print(f"DEBUG: Digital output {output_io} from I/O {output_io}: {io_elements[output_io]}")
+            
+            # Temperature sensors - Multiple temperature I/O elements
+            temp_sensors = {72: "temp_1", 73: "temp_2", 74: "temp_3", 75: "temp_4"}
+            for temp_io, temp_name in temp_sensors.items():
+                if temp_io in io_elements:
+                    addon_info[temp_name] = str(io_elements[temp_io])
+                    print(f"DEBUG: Temperature sensor {temp_name} from I/O {temp_io}: {io_elements[temp_io]} °C")
+            
+            # Additional vehicle metrics
+            if 24 in io_elements:  # Speed source/status
+                addon_info["speed_source"] = str(io_elements[24])
+                print(f"DEBUG: Speed source from I/O 24: {io_elements[24]}")
+            
+            # Analog inputs - Additional sensor data
+            if 9 in io_elements:  # Analog input 1 (could be additional data)
+                addon_info["analog_input_1"] = str(io_elements[9])
+                print(f"DEBUG: Analog input 1 from I/O 9: {io_elements[9]}")
+            
+            if 10 in io_elements:  # Analog input 2  
+                addon_info["analog_input_2"] = str(io_elements[10])
+                print(f"DEBUG: Analog input 2 from I/O 10: {io_elements[10]}")
+            
+            print(f"DEBUG: COMPREHENSIVE ENGINE OFF addon_info (PHP-style): {addon_info}")
+            print(f"DEBUG: Total I/O elements captured: {len([k for k in addon_info.keys() if not k.startswith('DEBUG')])}")
                
         elif activity_id == 19:  # Engine Stop / Trip Stop (similar to Activity 3 but via I/O 250)
             print(f"DEBUG: Generating addon_info for Engine Stop (Trip Stop) - Activity ID 19")
@@ -1838,8 +1985,82 @@ class GPSListener:
             if 250 in io_elements:  
                 addon_info["trip_status"] = str(io_elements[250])
                 print(f"DEBUG: Trip status from I/O 250: {io_elements[250]} (0=Stop, 1=Start)")
+            
+            # Add all the same comprehensive I/O data as Activity 3 (Engine OFF)
+            # Battery voltage - I/O 67
+            if 67 in io_elements:  
+                addon_info["battery_voltage"] = str(io_elements[67])
+                print(f"DEBUG: Battery voltage from I/O 67: {io_elements[67]} V")
+            
+            # External power voltage - I/O 66
+            if 66 in io_elements:  
+                addon_info["ext_power_voltage"] = str(io_elements[66])
+                print(f"DEBUG: External power voltage from I/O 66: {io_elements[66]} V")
+            
+            # Journey status - I/O 239 (for confirmation)
+            if 239 in io_elements:  
+                addon_info["journey_status"] = str(io_elements[239])
+                print(f"DEBUG: Journey status from I/O 239: {io_elements[239]} (0=Stop, 1=Start)")
+            
+            # Movement status - I/O 240 (for confirmation)
+            if 240 in io_elements:  
+                addon_info["movement_status"] = str(io_elements[240])
+                print(f"DEBUG: Movement status from I/O 240: {io_elements[240]} (0=Off, 1=On)")
+            
+            # GSM signal quality - I/O 21
+            if 21 in io_elements:  
+                addon_info["gsm_signal"] = str(io_elements[21])
+                print(f"DEBUG: GSM signal from I/O 21: {io_elements[21]}")
+            
+            # Engine hours/runtime - I/O 15 (Engine runtime) 
+            if 15 in io_elements:  
+                addon_info["engine_hours"] = str(io_elements[15])
+                print(f"DEBUG: Engine hours from I/O 15: {io_elements[15]}")
                 
-            print(f"DEBUG: Final addon_info for Trip Stop: {addon_info}")
+            # Idle time during trip - I/O 11 (Total idle time)
+            if 11 in io_elements:  
+                addon_info["idle_time"] = str(io_elements[11])
+                print(f"DEBUG: Idle time from I/O 11: {io_elements[11]} seconds")
+            
+            # Digital inputs status (doors, ignition accessories)
+            for digital_io in [1, 2, 3, 4]:  # Common digital inputs
+                if digital_io in io_elements:
+                    addon_info[f"digital_input_{digital_io}"] = str(io_elements[digital_io])
+                    print(f"DEBUG: Digital input {digital_io} from I/O {digital_io}: {io_elements[digital_io]}")
+            
+            # Digital outputs status 
+            for output_io in [179, 180, 181, 182]:  # Common digital outputs
+                if output_io in io_elements:
+                    addon_info[f"digital_output_{output_io}"] = str(io_elements[output_io])
+                    print(f"DEBUG: Digital output {output_io} from I/O {output_io}: {io_elements[output_io]}")
+            
+            # Temperature sensors
+            temp_sensors = {72: "temp_1", 73: "temp_2", 74: "temp_3", 75: "temp_4"}
+            for temp_io, temp_name in temp_sensors.items():
+                if temp_io in io_elements:
+                    addon_info[temp_name] = str(io_elements[temp_io])
+                    print(f"DEBUG: Temperature sensor {temp_name} from I/O {temp_io}: {io_elements[temp_io]} °C")
+            
+            # GPS/GNSS quality indicators
+            if 69 in io_elements:  # GNSS status
+                addon_info["gnss_status"] = str(io_elements[69])
+                print(f"DEBUG: GNSS status from I/O 69: {io_elements[69]}")
+            
+            if 182 in io_elements:  # HDOP (GPS quality)
+                addon_info["hdop"] = str(io_elements[182])
+                print(f"DEBUG: HDOP from I/O 182: {io_elements[182]}")
+            
+            # Driver identification at trip end
+            driver_found = False
+            for driver_io in [78, 245, 403, 404, 405, 406, 407]:
+                if driver_io in io_elements and not driver_found:
+                    driver_id = io_elements[driver_io]
+                    if driver_id and str(driver_id).strip() not in ["", "0", "FFFFFFFFFFFFFFFF", "0000000000000000"]:
+                        addon_info["driver_at_stop"] = str(driver_id)
+                        print(f"DEBUG: Driver at trip stop from I/O {driver_io}: {driver_id}")
+                        driver_found = True
+                
+            print(f"DEBUG: Enhanced addon_info for Trip Stop: {addon_info}")
                
         elif activity_id in [9, 10]:  # Power status events
             if 67 in io_elements:  # Internal battery voltage (backup battery)
@@ -1873,6 +2094,42 @@ class GPSListener:
                 print(f"DEBUG: Battery voltage during panic: {io_elements[67]} V")
             
             print(f"DEBUG: Final addon_info for Panic Button: {addon_info}")
+               
+        elif activity_id in [5, 6, 7]:  # Harsh Driving Events (Braking, Turning, Acceleration)
+            print(f"DEBUG: Generating addon_info for Harsh Driving Event - Activity ID {activity_id}")
+            print(f"DEBUG: Available I/O elements: {list(io_elements.keys())}")
+            
+            # Harsh driving type from I/O 253 (Green Driving)
+            if 253 in io_elements:
+                green_driving_value = io_elements[253]
+                driving_type_map = {1: "Harsh Acceleration", 2: "Harsh Braking", 3: "Harsh Turning"}
+                driving_type = driving_type_map.get(green_driving_value, f"Unknown ({green_driving_value})")
+                addon_info["driving_event_type"] = driving_type
+                addon_info["green_driving_value"] = str(green_driving_value)
+                print(f"DEBUG: Green driving event from I/O 253: {driving_type} (value: {green_driving_value})")
+            
+            # Speed during harsh driving event
+            # Note: Speed is typically in the main record, but we can check for speed-related I/O elements too
+            speed_ios = [181, 182, 241, 242]  # Various speed-related I/O elements
+            for speed_io in speed_ios:
+                if speed_io in io_elements:
+                    addon_info[f"speed_io_{speed_io}"] = str(io_elements[speed_io])
+                    print(f"DEBUG: Speed data from I/O {speed_io}: {io_elements[speed_io]}")
+            
+            # Accelerometer data if available
+            accel_ios = [17, 18, 19]  # X, Y, Z axis accelerometer
+            for accel_io in accel_ios:
+                if accel_io in io_elements:
+                    axis_name = {17: "X-axis", 18: "Y-axis", 19: "Z-axis"}[accel_io]
+                    addon_info[f"accelerometer_{axis_name.lower()}"] = str(io_elements[accel_io])
+                    print(f"DEBUG: Accelerometer {axis_name} from I/O {accel_io}: {io_elements[accel_io]}")
+            
+            # GSM signal quality during event
+            if 21 in io_elements:
+                addon_info["gsm_signal"] = str(io_elements[21])
+                print(f"DEBUG: GSM signal during harsh driving: {io_elements[21]}")
+            
+            print(f"DEBUG: Final addon_info for Harsh Driving Event: {addon_info}")
                
         elif activity_id in [17, 24]:  # Invalid Scan and Regular Ibutton Scan
             # Check multiple possible I/O elements for driver ID
