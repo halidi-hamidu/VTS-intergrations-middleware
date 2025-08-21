@@ -25,7 +25,63 @@ SECRET_KEY = 'django-insecure-&_6^!g9+oqq*3u)0m743^e^ga%-#9rlg*xx*we928naulg0ku#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['93.127.139.107', 'localhost', '127.0.0.1', '0.0.0.0']
+# Logging configuration for debugging CSRF issues
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/app/debug.log',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.security.csrf': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+ALLOWED_HOSTS = ['93.127.139.107', 'localhost', '127.0.0.1', '0.0.0.0', 'vts.webgpstracking.co.tz']
+
+# CSRF settings for production domain
+CSRF_TRUSTED_ORIGINS = [
+    'https://vts.webgpstracking.co.tz',
+    'http://vts.webgpstracking.co.tz', 
+    'https://93.127.139.107',
+    'http://93.127.139.107',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+# CSRF failure debugging (only for troubleshooting)
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
+
+# Additional security settings for production
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_TZ = True
+
+# Session settings
+SESSION_COOKIE_SECURE = False  # Set to True if using HTTPS only
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# CSRF settings  
+CSRF_COOKIE_SECURE = False  # Set to True if using HTTPS only
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 
 # Application definition

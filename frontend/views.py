@@ -24,21 +24,30 @@ from .forms import *
 
 
 def login_view(request):
-    """Login page view"""
+    """Login page view with CSRF debugging"""
     if request.user.is_authenticated:
         return redirect('frontend:dashboard')
     
     if request.method == 'POST':
+        # Debug CSRF issues
+        print(f"DEBUG: Login POST request from {request.META.get('HTTP_HOST', 'Unknown host')}")
+        print(f"DEBUG: X-Forwarded-Proto: {request.META.get('HTTP_X_FORWARDED_PROTO', 'Not set')}")
+        print(f"DEBUG: User-Agent: {request.META.get('HTTP_USER_AGENT', 'Unknown')}")
+        print(f"DEBUG: CSRF Cookie: {request.COOKIES.get('csrftoken', 'Not found')}")
+        
         username = request.POST.get('username')
         password = request.POST.get('password')
         
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, 'Login successful!')
-            return redirect('frontend:dashboard')
+        if username and password:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, 'Login successful!')
+                return redirect('frontend:dashboard')
+            else:
+                messages.error(request, 'Invalid username or password.')
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Please provide both username and password.')
     
     return render(request, 'frontend/login.html')
 
