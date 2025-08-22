@@ -1075,23 +1075,56 @@ class GPSListener:
                             try:
                                 # ext_voltage is already in volts (parsed by sorting_hat)
                                 voltage = float(ext_voltage)
+                                current_speed = record.get("speed", 0)
                                    
-                                print(f"🔌 EXTERNAL VOLTAGE CHECK: Parsed={voltage:.2f}V")
+                                print(f"🔌 EXTERNAL VOLTAGE CHECK: Parsed={voltage:.2f}V, Speed={current_speed} km/h")
                                    
                                 # External power disconnection check
                                 if voltage == 0 or (voltage > 0 and voltage < 9.0):  # Less than 9V or 0V
-                                    detected_activity = 10  # LATRA Activity ID 10 (External Power Disconnected)
-                                    record["activity"] = f"10 - External Power Disconnected ({voltage:.2f}V)"
-                                    print(f"🔌 EXTERNAL POWER DISCONNECTED: {voltage:.2f}V -> LATRA Activity 10")
+                                    # Device Tampering Logic: External power disconnect at speed ≥20 km/h = Device Tampering
+                                    if current_speed >= 20:
+                                        detected_activity = 14  # LATRA Activity ID 14 (Device Tampering)
+                                        record["activity"] = f"14 - Device Tampering (External power disconnect at {current_speed} km/h, {voltage:.2f}V)"
+                                        print(f"⚠️ DEVICE TAMPERING: External power disconnect at {current_speed} km/h ({voltage:.2f}V) -> LATRA Activity 14")
+                                    else:
+                                        detected_activity = 10  # LATRA Activity ID 10 (External Power Disconnected)
+                                        record["activity"] = f"10 - External Power Disconnected ({voltage:.2f}V at {current_speed} km/h)"
+                                        print(f"🔌 EXTERNAL POWER DISCONNECTED: {voltage:.2f}V at {current_speed} km/h -> LATRA Activity 10")
                                 else:
                                     print(f"🔌 EXTERNAL VOLTAGE NORMAL: {voltage:.2f}V (above 9V threshold)")
                                    
                             except (ValueError, TypeError) as e:
                                 print(f"DEBUG: Error parsing external voltage {ext_voltage}: {e}")
-                                # Still report as power disconnect event if I/O 66 is present
-                                detected_activity = 10
-                                record["activity"] = f"10 - External Power Disconnected (Parse Error: {ext_voltage})"
-                                print(f"🔌 EXTERNAL POWER PARSE ERROR -> LATRA Activity 10")
+                                current_speed = record.get("speed", 0)
+                                # Still report as power disconnect/tampering event if I/O 66 is present
+                                if current_speed >= 20:
+                                    detected_activity = 14
+                                    record["activity"] = f"14 - Device Tampering (Parse Error at {current_speed} km/h: {ext_voltage})"
+                                    print(f"⚠️ DEVICE TAMPERING PARSE ERROR at {current_speed} km/h -> LATRA Activity 14")
+                                else:
+                                    detected_activity = 10
+                                    record["activity"] = f"10 - External Power Disconnected (Parse Error: {ext_voltage})"
+                                    print(f"🔌 EXTERNAL POWER PARSE ERROR -> LATRA Activity 10")
+                       
+                        # Check for external power status (I/O 252 - External Power Connection Status) - Like PHP EVENT_EXTERNAL_POWER = 252
+                        if not detected_activity and 252 in io_elements:
+                            ext_power_status = io_elements[252]
+                            current_speed = record.get("speed", 0)
+                            print(f"🔌 EXTERNAL POWER STATUS CHECK: I/O 252={ext_power_status}, Speed={current_speed} km/h")
+                            
+                            # I/O 252: 1 = disconnected, 0 = connected
+                            if ext_power_status == 1:  # External power disconnected
+                                # Device Tampering Logic: External power disconnect at speed ≥20 km/h = Device Tampering
+                                if current_speed >= 20:
+                                    detected_activity = 14  # LATRA Activity ID 14 (Device Tampering)
+                                    record["activity"] = f"14 - Device Tampering (External power status disconnect at {current_speed} km/h)"
+                                    print(f"⚠️ DEVICE TAMPERING: External power status disconnect at {current_speed} km/h -> LATRA Activity 14")
+                                else:
+                                    detected_activity = 10  # LATRA Activity ID 10 (External Power Disconnected)
+                                    record["activity"] = f"10 - External Power Disconnected (Status disconnect at {current_speed} km/h)"
+                                    print(f"🔌 EXTERNAL POWER STATUS DISCONNECTED: At {current_speed} km/h -> LATRA Activity 10")
+                            elif ext_power_status == 0:
+                                print(f"🔌 EXTERNAL POWER STATUS CONNECTED: I/O 252=0 (normal)")
                        
                         # Check for trip events (I/O 250 - Trip)
                         if not detected_activity and 250 in io_elements:
@@ -2455,45 +2488,82 @@ class GPSListener:
                         elif satellite_count > 0:
                             gps_mode = "2"  # 2D if some satellites
                        
-                        # RSSI (Received Signal Strength Indication) - Only from actual I/O
+                        # RSSI (Received Signal Strength Indication) - From I/O 21 like PHP
                         rssi_value = "0"  # Default to 0 (unknown)
                         if 21 in io_elements:  # GSM Signal Strength
-                            rssi_value = str(io_elements[21])
+                            signal_raw = io_elements[21]
+                            try:
+                                # Apply PHP logic: $rssi = $rssv ? $rssv * 6 : 0;
+                                signal_int = int(signal_raw)
+                                if signal_int > 0:
+                                    rssi_value = str(signal_int * 6)  # Multiply by 6 like PHP
+                                    print(f"DEBUG: RSSI calculation: {signal_int} * 6 = {rssi_value}")
+                                else:
+                                    rssi_value = "0"
+                            except (ValueError, TypeError):
+                                rssi_value = "0"
                         # NO ESTIMATION from other sources
                        
-                        # LAC (Location Area Code) - Only from actual I/O
-                        lac_value = "0"  # Default to 0 (unknown) instead of fake 123
-                        if 212 in io_elements:  # GSM Cell LAC
-                            lac_value = str(io_elements[212])
-                        # NO EXTRACTION from operator codes
+                        # LAC (Location Area Code) - From I/O 206 (GSM Area Code) like PHP
+                        lac_value = "0"  # Default to 0 (unknown)
+                        if 206 in io_elements:  # GSM Area Code - CORRECT I/O for LAC
+                            lac_raw = io_elements[206]
+                            try:
+                                # Validate LAC range (should be 1-65534, if > 65536 set to 0 like PHP)
+                                lac_int = int(lac_raw)
+                                if lac_int > 0 and lac_int <= 65534:
+                                    lac_value = str(lac_int)
+                                else:
+                                    lac_value = "0"
+                                    print(f"DEBUG: LAC {lac_int} out of range, setting to 0 like PHP logic")
+                            except (ValueError, TypeError):
+                                lac_value = "0"
+                        # NO EXTRACTION from other operator codes
                        
-                        # Cell ID - Only from actual I/O
-                        cell_id_value = "0"  # Default to 0 (unknown) instead of fake 12345
-                        if 213 in io_elements:  # GSM Cell ID
-                            cell_id_value = str(io_elements[213])
+                        # Cell ID - From I/O 205 (GSM Cell ID) like PHP
+                        cell_id_value = "0"  # Default to 0 (unknown)
+                        if 205 in io_elements:  # GSM Cell ID - CORRECT I/O for Cell ID
+                            cell_id_raw = io_elements[205]
+                            try:
+                                cell_id_int = int(cell_id_raw)
+                                if cell_id_int > 0:
+                                    cell_id_value = str(cell_id_int)
+                            except (ValueError, TypeError):
+                                cell_id_value = "0"
                         # NO FALLBACK to other I/O elements
                        
-                        # MCC (Mobile Country Code) - Only from actual I/O
-                        mcc_value = "0"  # Default to 0 (unknown) instead of assuming Kenya
+                        # MCC (Mobile Country Code) - Use Tanzania code like PHP
+                        mcc_value = "640"  # Tanzania MCC like PHP hardcoded value "640"
+                        # In PHP: "MCC" => "640", //tanzania
+                        
+                        # Alternative: Extract from GSM Operator Code if available
                         if 14 in io_elements:  # GSM Operator Code
                             operator_code = io_elements[14]
                             try:
                                 # Ensure operator_code is an integer for comparison
                                 operator_code_int = int(operator_code) if isinstance(operator_code, str) else operator_code
                                 if operator_code_int > 100000:
-                                    mcc_value = str(operator_code_int)[:3]
+                                    extracted_mcc = str(operator_code_int)[:3]
+                                    # Use extracted MCC if it looks valid, otherwise keep Tanzania default
+                                    if extracted_mcc in ["640", "639", "641"]:  # Valid Tanzania/East Africa MCCs
+                                        mcc_value = extracted_mcc
+                                        print(f"DEBUG: Using extracted MCC: {extracted_mcc}")
+                                    else:
+                                        print(f"DEBUG: Non-Tanzania MCC {extracted_mcc}, keeping default 640")
                             except (ValueError, TypeError):
-                                print(f"DEBUG: Invalid operator code: {operator_code}, using default MCC")
-                                mcc_value = "0"
+                                print(f"DEBUG: Invalid operator code: {operator_code}, using Tanzania MCC 640")
                        
-                        print(f"📊 LATRA FIELDS - REAL DATA ONLY:")
-                        print(f"   ️  Satellite Count: {satellite_count} (Source: {'GPS data' if satellite_count > 0 else 'NOT AVAILABLE'})")
+                        print(f"📊 LATRA GSM/NETWORK FIELDS - CORRECTED I/O MAPPINGS:")
+                        print(f"   🛰️ Satellite Count: {satellite_count} (Source: {'GPS data' if satellite_count > 0 else 'NOT AVAILABLE'})")
                         print(f"   📡 HDOP: {hdop_value} (Source: {'I/O 182' if 182 in io_elements else 'NOT AVAILABLE'})")
                         print(f"   🌐 GPS Mode: {gps_mode} (Source: {'I/O 181' if 181 in io_elements else 'satellite count' if satellite_count > 0 else 'NOT AVAILABLE'})")
-                        print(f"   📶 RSSI: {rssi_value} (Source: {'I/O 21' if 21 in io_elements else 'NOT AVAILABLE'})")
-                        print(f"   🏢 LAC: {lac_value} (Source: {'I/O 212' if 212 in io_elements else 'NOT AVAILABLE'})")
-                        print(f"   📱 Cell ID: {cell_id_value} (Source: {'I/O 213' if 213 in io_elements else 'NOT AVAILABLE'})")
-                        print(f"   🌍 MCC: {mcc_value} (Source: {'I/O 14' if 14 in io_elements else 'NOT AVAILABLE'})")
+                        print(f"   📶 RSSI: {rssi_value} (Source: {'I/O 21 × 6' if 21 in io_elements else 'NOT AVAILABLE'}) - PHP Logic Applied")
+                        print(f"   🏢 LAC: {lac_value} (Source: {'I/O 206' if 206 in io_elements else 'NOT AVAILABLE'}) - CORRECTED MAPPING")
+                        print(f"   📱 Cell ID: {cell_id_value} (Source: {'I/O 205' if 205 in io_elements else 'NOT AVAILABLE'}) - CORRECTED MAPPING")
+                        print(f"   🌍 MCC: {mcc_value} (Source: {'Tanzania (640)' if mcc_value == '640' else 'I/O 14'}) - PHP Default Applied")
+                        print(f"   📋 Available Network I/O Elements: {[io for io in [21, 205, 206, 14, 182, 181] if io in io_elements]}")
+                        if not any(io in io_elements for io in [21, 205, 206]):
+                            print(f"   ⚠️ WARNING: No GSM network data (I/O 21, 205, 206) available - will send zeros to LATRA")
 
                         item = {
                             "latitude": str(f"{latitude:.6f}"),
